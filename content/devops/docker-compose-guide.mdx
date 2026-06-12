@@ -1,0 +1,80 @@
+---
+title: "Docker Compose para Desenvolvimento Local"
+description: "Aprenda a configurar ambientes de desenvolvimento local usando Docker Compose com múltiplos serviços."
+category: "DevOps"
+tags:
+  - Docker
+  - Docker Compose
+  - DevOps
+  - Containers
+featured: false
+publishedAt: "2026-05-20"
+---
+
+## Introdução
+
+Docker Compose permite definir e executar múltiplos containers Docker como uma única aplicação, facilitando a configuração de ambientes de desenvolvimento.
+
+## Estrutura Básica
+
+### docker-compose.yml
+
+```yaml
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/mydb
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: mydb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+```
+
+## Comandos Essenciais
+
+| Comando | Descrição |
+|---------|-----------|
+| `docker compose up` | Inicia todos os serviços |
+| `docker compose up -d` | Inicia em background |
+| `docker compose down` | Para e remove containers |
+| `docker compose logs -f` | Visualiza logs em tempo real |
+| `docker compose build` | reconstrói as imagens |
+
+## Multi-stage Build
+
+```dockerfile
+# Build stage
+FROM node:20 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Production stage
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
+```
+
+## Conclusão
+
+Docker Compose é essencial para manter ambientes de desenvolvimento consistentes entre diferentes máquinas e membros da equipe.

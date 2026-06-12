@@ -1,0 +1,67 @@
+---
+title: "Notação Big O: Guia para Iniciantes"
+description: "Entenda a notação Big O e como analisar a complexidade de algoritmos de forma simples e prática."
+category: "Algoritmos"
+tags:
+  - Algoritmos
+  - Big O
+  - Performance
+  - Estruturas de Dados
+featured: true
+publishedAt: "2026-05-05"
+---
+
+## Introdução
+
+Big O é a notação usada para descrever a eficiência de algoritmos em termos de tempo e espaço conforme o tamanho da entrada cresce.
+
+## Complexidades Comuns
+
+| Notação | Nome | Exemplo |
+|---------|------|---------|
+| O(1) | Constante | Acesso a array por índice |
+| O(log n) | Logarítmica | Busca binária |
+| O(n) | Linear | Busca em array não ordenado |
+| O(n log n) | Linearítmica | Merge Sort, Quick Sort |
+| O(n²) | Quadrática | Bubble Sort |
+
+## Exemplos Práticos
+
+### O(1) - Constante
+
+```javascript
+function getFirst(arr) {
+  return arr[0];
+}
+```
+
+### O(n) - Linear
+
+```javascript
+function findMax(arr) {
+  let max = arr[0];
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] > max) max = arr[i];
+  }
+  return max;
+}
+```
+
+### O(n²) - Quadrática
+
+```javascript
+function bubbleSort(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr.length - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+      }
+    }
+  }
+  return arr;
+}
+```
+
+## Conclusão
+
+Entender Big O ajuda a escrever código mais eficiente e a tomar melhores decisões de design. Pratique analisando algoritmos do seu dia a dia.

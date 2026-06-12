@@ -1,0 +1,44 @@
+---
+title: "Microserviços vs Monólito: Como Escolher"
+description: "Análise comparativa entre arquitetura de microserviços e monólito para ajudar na escolha da melhor abordagem."
+category: "Arquitetura"
+tags:
+  - Arquitetura
+  - Microserviços
+  - Monólito
+  - Design
+featured: true
+publishedAt: "2026-05-15"
+---
+
+## Introdução
+
+Uma das decisões mais importantes no design de software é escolher entre arquitetura monolítica e microserviços. Cada abordagem tem seus trade-offs.
+
+## Comparação
+
+| Aspecto | Monólito | Microserviços |
+|---------|----------|---------------|
+| Deploy | Único | Múltiplos |
+| Escalabilidade | Vertical | Horizontal |
+| Complexidade | Menor inicial | Maior |
+| Tempo de desenvolvimento inicial | Rápido | Lento |
+| Isolamento de falhas | Baixo | Alto |
+
+## Quando Usar Monólito
+
+- Times pequenos (< 10 pessoas)
+- Produtos em estágio inicial
+- Domínios simples e bem definidos
+- Necessidade de velocidade de desenvolvimento
+
+## Quando Usar Microserviços
+
+- Times grandes e múltiplos squads
+- Produtos em escala
+- Domínios complexos com bounded contexts claros
+- Necessidade de deploy independente
+
+## Conclusão
+
+Não existe bala de prata. Comece com um monólito bem estruturado e divida em microserviços quando houver necessidade real. Microserviços precoces adicionam complexidade desnecessária.

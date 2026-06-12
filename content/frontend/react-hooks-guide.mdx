@@ -1,0 +1,88 @@
+---
+title: "Guia Completo dos Hooks do React"
+description: "Entenda os principais hooks do React e como utilizá-los no dia a dia para construir componentes funcionais poderosos."
+category: "Frontend"
+tags:
+  - React
+  - Hooks
+  - JavaScript
+  - TypeScript
+featured: true
+publishedAt: "2026-05-28"
+---
+
+## Introdução
+
+Os hooks são funções que permitem usar estado e outros recursos do React em componentes funcionais. Eles foram introduzidos no React 16.8 e revolucionaram a forma como escrevemos componentes.
+
+## useState
+
+O hook mais básico, usado para gerenciar estado local:
+
+```tsx
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Você clicou {count} vezes</p>
+      <button onClick={() => setCount(count + 1)}>
+        Incrementar
+      </button>
+    </div>
+  );
+}
+```
+
+## useEffect
+
+Executa efeitos colaterais em componentes funcionais:
+
+```tsx
+import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/users/${userId}`)
+      .then(res => res.json())
+      .then(setUser);
+  }, [userId]);
+
+  if (!user) return <p>Carregando...</p>;
+
+  return <h1>{user.name}</h1>;
+}
+```
+
+## useMemo e useCallback
+
+Hooks de memorização para otimização de performance:
+
+```tsx
+import { useMemo, useCallback } from 'react';
+
+function ExpensiveList({ items, filter }: Props) {
+  const filteredItems = useMemo(
+    () => items.filter(item => item.category === filter),
+    [items, filter]
+  );
+
+  const handleClick = useCallback((id: string) => {
+    console.log('Item clicado:', id);
+  }, []);
+
+  return filteredItems.map(item => (
+    <div key={item.id} onClick={() => handleClick(item.id)}>
+      {item.name}
+    </div>
+  ));
+}
+```
+
+## Conclusão
+
+Os hooks são essenciais para o desenvolvimento React moderno. Pratique cada um deles em projetos reais para dominar seu uso.

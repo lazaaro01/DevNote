@@ -1,0 +1,107 @@
+---
+title: "Autenticação JWT com Spring Security"
+description: "Guia completo para implementar autenticação JWT em uma API REST com Spring Boot e Spring Security."
+category: "Backend"
+tags:
+  - Java
+  - Spring Boot
+  - JWT
+  - Segurança
+  - REST
+featured: true
+publishedAt: "2026-06-01"
+---
+
+## Introdução
+
+JSON Web Tokens (JWT) são amplamente utilizados para autenticação em APIs REST modernas. Neste guia, vamos implementar um sistema completo de autenticação utilizando Spring Security e JWT.
+
+## Configuração do Projeto
+
+### Dependências Maven
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-api</artifactId>
+    <version>0.12.5</version>
+</dependency>
+```
+
+### Configuração do Security
+
+A classe de configuração do Spring Security define as regras de segurança:
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) {
+        return http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .build();
+    }
+}
+```
+
+## Gerando o Token JWT
+
+O serviço de JWT é responsável por gerar e validar tokens:
+
+```java
+@Service
+public class JwtService {
+
+    private static final String SECRET_KEY = "sua-chave-secreta-aqui-com-pelo-menos-256-bits";
+
+    public String generateToken(UserDetails user) {
+        return Jwts.builder()
+            .subject(user.getUsername())
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + 86400000))
+            .signWith(getSigningKey())
+            .compact();
+    }
+
+    public String extractUsername(String token) {
+        return extractClaims(token).getSubject();
+    }
+
+    private Claims extractClaims(String token) {
+        return Jwts.parser()
+            .verifyWith(getSigningKey())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+    }
+
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+}
+```
+
+## Conclusão
+
+Com essa implementação, sua API REST está protegida com autenticação JWT. Lembre-se de:
+
+- Utilizar **HTTPS** em produção
+- Armazenar a chave secreta em variáveis de ambiente
+- Implementar refresh tokens para melhor experiência
+- Configurar CORS corretamente
