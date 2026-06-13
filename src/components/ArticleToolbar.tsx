@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
-type LayoutOption = "default" | "full-width" | "reading";
+type LayoutOption = "default" | "full-width" | "reading" | "presentation";
 type ThemeOption =
   | ""
   | "violet"
@@ -29,6 +29,7 @@ const layouts: { value: LayoutOption; label: string; icon: string }[] = [
   { value: "default", label: "Padrão", icon: "📄" },
   { value: "full-width", label: "Largo", icon: "📐" },
   { value: "reading", label: "Leitura", icon: "📖" },
+  { value: "presentation", label: "Apresentação", icon: "🎬" },
 ];
 
 const themes: { value: ThemeOption; color: string; label: string }[] = [
@@ -49,6 +50,7 @@ const themes: { value: ThemeOption; color: string; label: string }[] = [
 export default function ArticleToolbar() {
   const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  const prevLayout = useRef<LayoutOption>("default");
 
   useEffect(() => {
     try {
@@ -56,6 +58,9 @@ export default function ArticleToolbar() {
       if (saved) {
         const parsed = JSON.parse(saved) as Prefs;
         setPrefs(parsed);
+        if (parsed.layout !== "presentation") {
+          prevLayout.current = parsed.layout;
+        }
         applyOverrides(parsed);
       }
     } catch {
@@ -71,6 +76,7 @@ export default function ArticleToolbar() {
   }, []);
 
   const handleLayout = (layout: LayoutOption) => {
+    if (layout !== "presentation") prevLayout.current = layout;
     const next = { ...prefs, layout };
     setPrefs(next);
     saveAndApply(next);
@@ -93,19 +99,33 @@ export default function ArticleToolbar() {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const handleTogglePresentation = () => {
+    if (prefs.layout === "presentation") {
+      handleLayout(prevLayout.current);
+    } else {
+      handleLayout("presentation");
+    }
+  };
+
   const saveAndApply = (p: Prefs) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
     applyOverrides(p);
   };
 
   useEffect(() => {
-    if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "p" || e.key === "P") {
+        if (!e.ctrlKey && !e.metaKey) {
+          handleTogglePresentation();
+        }
+      }
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [open]);
+  }, [open, prefs.layout]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 print-hidden">
