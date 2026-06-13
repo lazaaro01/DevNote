@@ -1,3 +1,6 @@
+export type LayoutType = "default" | "full-width" | "reading";
+export type TemplateType = "article" | "tutorial" | "cheatsheet" | "reference";
+
 export interface ContentMeta {
   slug: string;
   title: string;
@@ -8,6 +11,9 @@ export interface ContentMeta {
   readingTime: number;
   publishedAt: string;
   featured: boolean;
+  layout: LayoutType;
+  theme: string;
+  template: TemplateType;
 }
 
 export interface Content extends ContentMeta {

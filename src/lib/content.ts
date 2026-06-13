@@ -69,6 +69,9 @@ export function getContentList(category?: string): ContentMeta[] {
         readingTime: Math.ceil(stats.minutes),
         publishedAt: data.publishedAt ?? "",
         featured: data.featured ?? false,
+        layout: data.layout ?? "default",
+        theme: data.theme ?? "",
+        template: data.template ?? "article",
       });
     }
   }
@@ -100,6 +103,9 @@ export function getContent(
     readingTime: Math.ceil(stats.minutes),
     publishedAt: data.publishedAt ?? "",
     featured: data.featured ?? false,
+    layout: data.layout ?? "default",
+    theme: data.theme ?? "",
+    template: data.template ?? "article",
     content,
   };
 }

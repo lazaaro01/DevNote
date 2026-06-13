@@ -3,9 +3,11 @@ import Link from "next/link";
 import MDXContent from "@/components/MDXContent";
 import ContentCard from "@/components/ContentCard";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import TOC from "@/components/TOC";
 import PrintButton from "@/components/PrintButton";
 import TagLink from "@/components/TagLink";
+import LayoutSwitcher from "@/components/layouts/LayoutSwitcher";
+import TemplateRenderer from "@/components/templates/TemplateRenderer";
+import ArticleToolbar from "@/components/ArticleToolbar";
 import {
   getContent,
   getRelatedContent,
@@ -71,75 +73,76 @@ export default async function ContentPage({
     border: "border-green-200",
   };
 
+  const themeClass = content.theme ? `theme-${content.theme}` : "";
+  const layout = content.layout;
+
   return (
-    <div className="max-w-6xl mx-auto px-8 py-12 flex gap-8">
-        <article className="min-w-0 flex-1 max-w-3xl">
-          <Breadcrumbs
-            items={[
-              { label: content.category, href: `/${category}` },
-              { label: content.title },
-            ]}
-          />
+    <div id="article-root" className={themeClass}>
+      <LayoutSwitcher layout={layout} tocContent={content.content}>
+        <Breadcrumbs
+          items={[
+            { label: content.category, href: `/${category}` },
+            { label: content.title },
+          ]}
+        />
 
-          <header className="mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <Link
-                href={`/${category}`}
-                className={`text-xs font-medium px-2.5 py-0.5 rounded-full border transition-colors ${badge.text} ${badge.bg} ${badge.border} hover:opacity-80`}
-              >
-                {content.category}
-              </Link>
-              <span className="text-xs text-text-secondary">
-                {content.readingTime} min de leitura
-              </span>
-              <span className="text-xs text-text-secondary">
-                {formatDate(content.publishedAt)}
-              </span>
-              <div className="ml-auto print-hidden">
-                <PrintButton />
-              </div>
+        <header className="mb-8">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <Link
+              href={`/${category}`}
+              className={`text-xs font-medium px-2.5 py-0.5 rounded-full border transition-colors ${badge.text} ${badge.bg} ${badge.border} hover:opacity-80`}
+            >
+              {content.category}
+            </Link>
+            <span className="text-xs text-text-secondary">
+              {content.readingTime} min de leitura
+            </span>
+            <span className="text-xs text-text-secondary">
+              {formatDate(content.publishedAt)}
+            </span>
+            <div className="ml-auto print-hidden">
+              <PrintButton />
             </div>
-            <h1 className="text-3xl font-bold text-text tracking-tight mb-3">
-              {content.title}
-            </h1>
-            <p className="text-text-secondary leading-relaxed">
-              {content.description}
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-4">
-              {content.tags.map((tag, i) => {
-                const tc = tagColors[i % tagColors.length];
-                return (
-                  <TagLink
-                    key={tag}
-                    tag={tag}
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-colors ${tc.text} ${tc.bg} hover:opacity-80`}
-                  />
-                );
-              })}
-            </div>
-          </header>
-
-          <div className="mb-12">
-            <MDXContent source={content.content} />
           </div>
+          <h1 className="text-3xl font-bold text-text tracking-tight mb-3">
+            {content.title}
+          </h1>
+          <p className="text-text-secondary leading-relaxed">
+            {content.description}
+          </p>
+          <div className="flex flex-wrap gap-1.5 mt-4">
+            {content.tags.map((tag, i) => {
+              const tc = tagColors[i % tagColors.length];
+              return (
+                <TagLink
+                  key={tag}
+                  tag={tag}
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-colors ${tc.text} ${tc.bg} hover:opacity-80`}
+                />
+              );
+            })}
+          </div>
+        </header>
 
-          {related.length > 0 && (
-            <section className="border-t border-slate-200 pt-8">
-              <h2 className="text-lg font-semibold text-text mb-4">
-                Conteúdos Relacionados
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {related.map((item) => (
-                  <ContentCard key={item.slug} content={item} />
-                ))}
-              </div>
-            </section>
-          )}
-        </article>
+        <div className="mb-12">
+          <TemplateRenderer template={content.template} />
+          <MDXContent source={content.content} />
+        </div>
 
-        <aside className="hidden xl:block w-56 flex-shrink-0">
-          <TOC markdown={content.content} />
-        </aside>
-      </div>
-    );
+        {related.length > 0 && (
+          <section className="border-t border-slate-700 pt-8">
+            <h2 className="text-lg font-semibold text-text mb-4">
+              Conteúdos Relacionados
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {related.map((item) => (
+                <ContentCard key={item.slug} content={item} />
+              ))}
+            </div>
+          </section>
+        )}
+      </LayoutSwitcher>
+      <ArticleToolbar />
+    </div>
+  );
 }
