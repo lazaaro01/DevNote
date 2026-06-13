@@ -43,7 +43,7 @@ export default function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Pesquisar conteúdos..."
-          className="w-full pl-12 pr-4 py-3.5 bg-card border border-slate-200 rounded-xl text-text placeholder:text-text-secondary/60 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+          className="w-full pl-12 pr-4 py-3.5 bg-card border border-slate-700 rounded-xl text-text placeholder:text-text-secondary/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
         />
       </div>
     </form>

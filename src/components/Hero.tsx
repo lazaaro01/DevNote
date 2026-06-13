@@ -1,6 +1,6 @@
 export default function Hero() {
   return (
-    <section className="relative mb-14 overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 p-8 md:p-10 animate-gradient">
+    <section className="relative mb-14 overflow-hidden rounded-2xl bg-transparent p-8 md:p-10">
       <div className="relative z-10">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-3 drop-shadow-sm">
           Biblioteca de Conhecimento Técnico

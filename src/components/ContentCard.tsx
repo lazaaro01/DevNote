@@ -4,30 +4,30 @@ import { formatDate } from "@/lib/utils";
 import TagLink from "./TagLink";
 
 const catColors: Record<string, { text: string; bg: string }> = {
-  Backend: { text: "text-blue-600", bg: "bg-blue-50" },
-  Frontend: { text: "text-pink-600", bg: "bg-pink-50" },
-  "Banco de Dados": { text: "text-orange-600", bg: "bg-orange-50" },
-  DevOps: { text: "text-cyan-600", bg: "bg-cyan-50" },
-  Arquitetura: { text: "text-amber-600", bg: "bg-amber-50" },
-  Carreira: { text: "text-emerald-600", bg: "bg-emerald-50" },
-  Algoritmos: { text: "text-red-600", bg: "bg-red-50" },
-  "System Design": { text: "text-violet-600", bg: "bg-violet-50" },
-  "Design Patterns": { text: "text-fuchsia-600", bg: "bg-fuchsia-50" },
-  "Princípios SOLID": { text: "text-emerald-600", bg: "bg-emerald-50" },
-  "Resiliência de Sistemas": { text: "text-indigo-600", bg: "bg-indigo-50" },
-  OKRs: { text: "text-rose-600", bg: "bg-rose-50" },
+  Backend: { text: "text-blue-300", bg: "bg-blue-950" },
+  Frontend: { text: "text-pink-300", bg: "bg-pink-950" },
+  "Banco de Dados": { text: "text-orange-300", bg: "bg-orange-950" },
+  DevOps: { text: "text-cyan-300", bg: "bg-cyan-950" },
+  Arquitetura: { text: "text-amber-300", bg: "bg-amber-950" },
+  Carreira: { text: "text-emerald-300", bg: "bg-emerald-950" },
+  Algoritmos: { text: "text-red-300", bg: "bg-red-950" },
+  "System Design": { text: "text-violet-300", bg: "bg-violet-950" },
+  "Design Patterns": { text: "text-fuchsia-300", bg: "bg-fuchsia-950" },
+  "Princípios SOLID": { text: "text-emerald-300", bg: "bg-emerald-950" },
+  "Resiliência de Sistemas": { text: "text-indigo-300", bg: "bg-indigo-950" },
+  OKRs: { text: "text-rose-300", bg: "bg-rose-950" },
 };
 
 export default function ContentCard({ content }: { content: ContentMeta }) {
   const colors = catColors[content.category] ?? {
-    text: "text-green-600",
-    bg: "bg-green-50",
+    text: "text-green-300",
+    bg: "bg-green-950",
   };
 
   return (
     <Link
       href={`/${content.categorySlug}/${content.slug}`}
-      className="group block p-5 bg-card border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+      className="group block p-5 bg-card border border-slate-700 rounded-xl hover:border-slate-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
     >
       <div className="flex items-center gap-2 mb-2">
         <span
@@ -50,7 +50,7 @@ export default function ContentCard({ content }: { content: ContentMeta }) {
           <TagLink
             key={tag}
             tag={tag}
-            className="text-xs text-text-secondary bg-slate-100 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+            className="text-xs text-text-secondary bg-slate-700 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
           />
         ))}
       </div>

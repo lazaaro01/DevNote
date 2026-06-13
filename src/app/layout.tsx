@@ -31,6 +31,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="bg-bg text-text">
+        <div className="aurora-bg" />
         <Sidebar />
         <KeyboardShortcuts />
         <main className="ml-64 min-h-screen">{children}</main>

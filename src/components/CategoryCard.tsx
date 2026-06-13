@@ -24,12 +24,12 @@ export default function CategoryCard({ category }: { category: CategoryInfo }) {
   return (
     <Link
       href={`/${category.slug}`}
-      className={`group relative flex items-center gap-4 p-4 bg-card border border-slate-200 rounded-xl hover:shadow-lg hover:border-transparent transition-all duration-300 hover:-translate-y-0.5 ${style.shadow} hover:shadow-xl`}
+      className={`group relative flex items-center gap-4 p-4 bg-card border border-slate-700 rounded-xl hover:shadow-lg hover:border-transparent transition-all duration-300 hover:-translate-y-0.5 ${style.shadow} hover:shadow-xl`}
     >
       <div
         className={`absolute inset-0 rounded-xl bg-gradient-to-br ${style.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
       />
-      <div className="relative w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 group-hover:bg-white/80 transition-colors duration-300" style={{ color: style.color }}>
+      <div className="relative w-9 h-9 flex items-center justify-center rounded-lg bg-slate-700 group-hover:bg-white/10 transition-colors duration-300" style={{ color: style.color }}>
         <Icon size={20} />
       </div>
       <div className="relative">
@@ -41,7 +41,7 @@ export default function CategoryCard({ category }: { category: CategoryInfo }) {
         </p>
       </div>
       <svg
-        className="relative w-4 h-4 ml-auto text-slate-300 group-hover:text-accent group-hover:translate-x-0.5 transition-all duration-300"
+        className="relative w-4 h-4 ml-auto text-slate-500 group-hover:text-accent group-hover:translate-x-0.5 transition-all duration-300"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

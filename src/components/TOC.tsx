@@ -16,7 +16,7 @@ export default function TOC({ markdown }: { markdown: string }) {
       <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary mb-4">
         Neste artigo
       </p>
-      <ul className="space-y-1 border-l-2 border-slate-200">
+      <ul className="space-y-1 border-l-2 border-slate-700">
         {headings.map((h, i) => (
           <li key={i}>
             <a

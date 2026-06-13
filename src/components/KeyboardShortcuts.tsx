@@ -52,7 +52,7 @@ export default function KeyboardShortcuts() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed top-4 right-4 z-30 w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-bold text-text-secondary hover:text-accent hover:border-accent hover:shadow-md transition-all duration-200 flex items-center justify-center"
+        className="fixed top-4 right-4 z-30 w-8 h-8 rounded-full bg-slate-800 border border-slate-600 shadow-sm text-sm font-bold text-text-secondary hover:text-accent hover:border-accent hover:shadow-md transition-all duration-200 flex items-center justify-center"
         title="Atalhos do teclado (?)"
         aria-label="Atalhos do teclado"
       >
@@ -66,7 +66,7 @@ export default function KeyboardShortcuts() {
           onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 animate-scale-in"
+            className="bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -84,14 +84,14 @@ export default function KeyboardShortcuts() {
               {shortcuts.map((s) => (
                 <li key={s.key} className="flex items-center justify-between">
                   <span className="text-sm text-text-secondary">{s.desc}</span>
-                  <kbd className="text-xs font-mono bg-slate-100 text-text border border-slate-200 px-2 py-0.5 rounded">
+                  <kbd className="text-xs font-mono bg-slate-700 text-text border border-slate-600 px-2 py-0.5 rounded">
                     {s.key}
                   </kbd>
                 </li>
               ))}
             </ul>
             <p className="text-xs text-text-secondary mt-4 text-center">
-              Pressione <kbd className="text-xs font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">?</kbd> a qualquer momento para abrir
+              Pressione <kbd className="text-xs font-mono bg-slate-700 px-1.5 py-0.5 rounded border border-slate-600">?</kbd> a qualquer momento para abrir
             </p>
           </div>
         </div>

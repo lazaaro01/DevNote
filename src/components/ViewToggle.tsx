@@ -20,11 +20,11 @@ export default function ViewToggle() {
   }
 
   return (
-    <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+    <div className="flex items-center gap-1 bg-slate-700 rounded-lg p-0.5">
       <button
         onClick={() => toggle("grid")}
         className={`p-1.5 rounded-md transition-colors ${
-          view === "grid" ? "bg-white shadow-sm text-text" : "text-text-secondary hover:text-text"
+          view === "grid" ? "bg-slate-600 shadow-sm text-text" : "text-text-secondary hover:text-text"
         }`}
         title="Visualização em grade"
       >
@@ -35,7 +35,7 @@ export default function ViewToggle() {
       <button
         onClick={() => toggle("list")}
         className={`p-1.5 rounded-md transition-colors ${
-          view === "list" ? "bg-white shadow-sm text-text" : "text-text-secondary hover:text-text"
+          view === "list" ? "bg-slate-600 shadow-sm text-text" : "text-text-secondary hover:text-text"
         }`}
         title="Visualização em lista"
       >

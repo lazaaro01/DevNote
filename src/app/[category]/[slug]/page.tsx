@@ -15,29 +15,29 @@ import {
 import { formatDate } from "@/lib/utils";
 
 const catBadge: Record<string, { text: string; bg: string; border: string }> = {
-  backend: { text: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" },
-  frontend: { text: "text-pink-600", bg: "bg-pink-50", border: "border-pink-200" },
-  database: { text: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200" },
-  devops: { text: "text-cyan-600", bg: "bg-cyan-50", border: "border-cyan-200" },
-  architecture: { text: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
-  career: { text: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
-  algorithms: { text: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
-  "system-design": { text: "text-violet-600", bg: "bg-violet-50", border: "border-violet-200" },
-  "design-patterns": { text: "text-fuchsia-600", bg: "bg-fuchsia-50", border: "border-fuchsia-200" },
-  solid: { text: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
-  resiliencia: { text: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-200" },
-  okrs: { text: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200" },
+  backend: { text: "text-blue-300", bg: "bg-blue-950", border: "border-blue-700" },
+  frontend: { text: "text-pink-300", bg: "bg-pink-950", border: "border-pink-700" },
+  database: { text: "text-orange-300", bg: "bg-orange-950", border: "border-orange-700" },
+  devops: { text: "text-cyan-300", bg: "bg-cyan-950", border: "border-cyan-700" },
+  architecture: { text: "text-amber-300", bg: "bg-amber-950", border: "border-amber-700" },
+  career: { text: "text-emerald-300", bg: "bg-emerald-950", border: "border-emerald-700" },
+  algorithms: { text: "text-red-300", bg: "bg-red-950", border: "border-red-700" },
+  "system-design": { text: "text-violet-300", bg: "bg-violet-950", border: "border-violet-700" },
+  "design-patterns": { text: "text-fuchsia-300", bg: "bg-fuchsia-950", border: "border-fuchsia-700" },
+  solid: { text: "text-emerald-300", bg: "bg-emerald-950", border: "border-emerald-700" },
+  resiliencia: { text: "text-indigo-300", bg: "bg-indigo-950", border: "border-indigo-700" },
+  okrs: { text: "text-rose-300", bg: "bg-rose-950", border: "border-rose-700" },
 };
 
 const tagColors = [
-  { text: "text-blue-600", bg: "bg-blue-50" },
-  { text: "text-violet-600", bg: "bg-violet-50" },
-  { text: "text-emerald-600", bg: "bg-emerald-50" },
-  { text: "text-amber-600", bg: "bg-amber-50" },
-  { text: "text-rose-600", bg: "bg-rose-50" },
-  { text: "text-cyan-600", bg: "bg-cyan-50" },
-  { text: "text-pink-600", bg: "bg-pink-50" },
-  { text: "text-indigo-600", bg: "bg-indigo-50" },
+  { text: "text-blue-300", bg: "bg-blue-950" },
+  { text: "text-violet-300", bg: "bg-violet-950" },
+  { text: "text-emerald-300", bg: "bg-emerald-950" },
+  { text: "text-amber-300", bg: "bg-amber-950" },
+  { text: "text-rose-300", bg: "bg-rose-950" },
+  { text: "text-cyan-300", bg: "bg-cyan-950" },
+  { text: "text-pink-300", bg: "bg-pink-950" },
+  { text: "text-indigo-300", bg: "bg-indigo-950" },
 ];
 
 export function generateStaticParams() {
