@@ -291,3 +291,26 @@ body {
   border-top: 2px solid #e2e8f0;
   margin: 2.5rem 0;
 }
+
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+  .prose pre {
+    white-space: pre-wrap;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+  .prose code {
+    font-size: 0.75rem;
+  }
+  .prose a {
+    word-wrap: break-word;
+  }
+  .prose img {
+    max-height: 6in;
+  }
+  @page {
+    margin: 0.8in;
+  }
+}

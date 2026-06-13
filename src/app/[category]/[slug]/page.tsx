@@ -2,6 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import MDXContent from "@/components/MDXContent";
 import ContentCard from "@/components/ContentCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import TOC from "@/components/TOC";
+import PrintButton from "@/components/PrintButton";
+import TagLink from "@/components/TagLink";
 import {
   getContent,
   getRelatedContent,
@@ -10,10 +14,7 @@ import {
 } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
 
-const catBadge: Record<
-  string,
-  { text: string; bg: string; border: string }
-> = {
+const catBadge: Record<string, { text: string; bg: string; border: string }> = {
   backend: { text: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" },
   frontend: { text: "text-pink-600", bg: "bg-pink-50", border: "border-pink-200" },
   database: { text: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200" },
@@ -71,74 +72,74 @@ export default async function ContentPage({
   };
 
   return (
-    <article className="max-w-3xl mx-auto px-8 py-12">
-      <Link
-        href={`/${category}`}
-        className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-accent transition-colors mb-6"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
+    <div className="max-w-6xl mx-auto px-8 py-12 flex gap-8">
+        <article className="min-w-0 flex-1 max-w-3xl">
+          <Breadcrumbs
+            items={[
+              { label: content.category, href: `/${category}` },
+              { label: content.title },
+            ]}
           />
-        </svg>
-        Voltar para {content.category}
-      </Link>
 
-      <header className="mb-8">
-        <div className="flex items-center gap-2 mb-3">
-          <Link
-            href={`/${category}`}
-            className={`text-xs font-medium px-2.5 py-0.5 rounded-full border transition-colors ${badge.text} ${badge.bg} ${badge.border} hover:opacity-80`}
-          >
-            {content.category}
-          </Link>
-          <span className="text-xs text-text-secondary">
-            {content.readingTime} min de leitura
-          </span>
-          <span className="text-xs text-text-secondary">
-            {formatDate(content.publishedAt)}
-          </span>
-        </div>
-        <h1 className="text-3xl font-bold text-text tracking-tight mb-3">
-          {content.title}
-        </h1>
-        <p className="text-text-secondary leading-relaxed">
-          {content.description}
-        </p>
-        <div className="flex flex-wrap gap-1.5 mt-4">
-          {content.tags.map((tag, i) => {
-            const tc = tagColors[i % tagColors.length];
-            return (
-              <span
-                key={tag}
-                className={`text-xs font-medium px-2.5 py-1 rounded-full ${tc.text} ${tc.bg}`}
+          <header className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <Link
+                href={`/${category}`}
+                className={`text-xs font-medium px-2.5 py-0.5 rounded-full border transition-colors ${badge.text} ${badge.bg} ${badge.border} hover:opacity-80`}
               >
-                {tag}
+                {content.category}
+              </Link>
+              <span className="text-xs text-text-secondary">
+                {content.readingTime} min de leitura
               </span>
-            );
-          })}
-        </div>
-      </header>
+              <span className="text-xs text-text-secondary">
+                {formatDate(content.publishedAt)}
+              </span>
+              <div className="ml-auto print-hidden">
+                <PrintButton />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-text tracking-tight mb-3">
+              {content.title}
+            </h1>
+            <p className="text-text-secondary leading-relaxed">
+              {content.description}
+            </p>
+            <div className="flex flex-wrap gap-1.5 mt-4">
+              {content.tags.map((tag, i) => {
+                const tc = tagColors[i % tagColors.length];
+                return (
+                  <TagLink
+                    key={tag}
+                    tag={tag}
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-colors ${tc.text} ${tc.bg} hover:opacity-80`}
+                  />
+                );
+              })}
+            </div>
+          </header>
 
-      <div className="mb-12">
-        <MDXContent source={content.content} />
-      </div>
-
-      {related.length > 0 && (
-        <section className="border-t border-slate-200 pt-8">
-          <h2 className="text-lg font-semibold text-text mb-4">
-            Conteúdos Relacionados
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {related.map((item) => (
-              <ContentCard key={item.slug} content={item} />
-            ))}
+          <div className="mb-12">
+            <MDXContent source={content.content} />
           </div>
-        </section>
-      )}
-    </article>
-  );
+
+          {related.length > 0 && (
+            <section className="border-t border-slate-200 pt-8">
+              <h2 className="text-lg font-semibold text-text mb-4">
+                Conteúdos Relacionados
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {related.map((item) => (
+                  <ContentCard key={item.slug} content={item} />
+                ))}
+              </div>
+            </section>
+          )}
+        </article>
+
+        <aside className="hidden xl:block w-56 flex-shrink-0">
+          <TOC markdown={content.content} />
+        </aside>
+      </div>
+    );
 }

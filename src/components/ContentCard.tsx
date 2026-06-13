@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ContentMeta } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import TagLink from "./TagLink";
 
 const catColors: Record<string, { text: string; bg: string }> = {
   Backend: { text: "text-blue-600", bg: "bg-blue-50" },
@@ -46,12 +47,11 @@ export default function ContentCard({ content }: { content: ContentMeta }) {
       </p>
       <div className="flex flex-wrap gap-1.5 mt-3">
         {content.tags.slice(0, 3).map((tag) => (
-          <span
+          <TagLink
             key={tag}
-            className="text-xs text-text-secondary bg-slate-100 px-2 py-0.5 rounded"
-          >
-            {tag}
-          </span>
+            tag={tag}
+            className="text-xs text-text-secondary bg-slate-100 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+          />
         ))}
       </div>
       <p className="text-xs text-text-secondary mt-3">
