@@ -1,0 +1,76 @@
+---
+title: "SRP — Princípio da Responsabilidade Única"
+description: "Entenda o Single Responsibility Principle, o primeiro dos princípios SOLID, com exemplos práticos em TypeScript."
+category: "Princípios SOLID"
+tags:
+  - SOLID
+  - SRP
+  - Responsabilidade Única
+  - Boas Práticas
+featured: true
+publishedAt: "2026-06-10"
+---
+
+## O que é o SRP?
+
+O Princípio da Responsabilidade Única (Single Responsibility Principle) afirma que **uma classe deve ter apenas um motivo para mudar**. Em outras palavras, cada classe deve ter uma única responsabilidade bem definida.
+
+## Problema
+
+Uma classe `Report` que gera relatórios e também os envia por email viola o SRP. Se o formato do relatório mudar ou se a lógica de email mudar, a mesma classe precisará ser alterada por razões diferentes.
+
+```typescript
+// ❌ Violação do SRP
+class Report {
+  generate(data: any): string {
+    return `Relatório: ${JSON.stringify(data)}`;
+  }
+
+  sendEmail(report: string, to: string) {
+    console.log(`Enviando email para ${to}: ${report}`);
+  }
+}
+```
+
+## Solução
+
+Separar em duas classes, cada uma com sua responsabilidade:
+
+```typescript
+// ✅ SRP respeitado
+class ReportGenerator {
+  generate(data: any): string {
+    return `Relatório: ${JSON.stringify(data)}`;
+  }
+}
+
+class EmailService {
+  send(to: string, content: string) {
+    console.log(`Enviando email para ${to}: ${content}`);
+  }
+}
+
+// Uso
+const generator = new ReportGenerator();
+const emailService = new EmailService();
+
+const report = generator.generate(data);
+emailService.send("user@example.com", report);
+```
+
+## Como Identificar Violações
+
+- A classe tem mais de um `motivo para mudar` descrito em comentários
+- Métodos que manipulam dados e também enviam notificações/persistência
+- Classes com muitos métodos não-relacionados
+
+## Benefícios
+
+- **Manutenibilidade**: cada classe tem uma responsabilidade clara
+- **Testabilidade**: classes menores e mais focadas são mais fáceis de testar
+- **Reuso**: classes com responsabilidades únicas são naturalmente mais reutilizáveis
+- **Baixo acoplamento**: mudanças em uma responsabilidade não afetam outras
+
+## Conclusão
+
+O SRP é o fundamento de um design coeso. Ao manter cada classe focada em uma única responsabilidade, o sistema se torna mais modular, compreensível e evolutivo.

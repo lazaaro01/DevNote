@@ -1,0 +1,79 @@
+---
+title: "Bancos de Dados em Larga Escala"
+description: "Estratégias de sharding, replicação e o Teorema CAP para sistemas distribuídos."
+category: "System Design"
+tags:
+  - System Design
+  - Banco de Dados
+  - Sharding
+  - Replicação
+  - CAP Theorem
+featured: false
+publishedAt: "2026-06-12"
+---
+
+## O Desafio dos Dados em Escala
+
+Conforme um sistema cresce, o banco de dados torna-se o gargalo mais comum. Estratégias de escalabilidade de dados são essenciais.
+
+## Replicação
+
+Copiar dados para múltiplos nós para aumentar disponibilidade e performance de leitura.
+
+### Tipos de Replicação
+
+- **Leader-Follower**: um nó principal recebe escritas, os secundários replicam
+- **Leader-Leader**: múltiplos nós aceitam escritas (conflitos possíveis)
+- **Quorum**: requer um número mínimo de nós para confirmar operações
+
+### Sincronia
+
+| Aspecto | Síncrona | Assíncrona |
+|---------|----------|------------|
+| Consistência | Imediata | Eventual |
+| Latência de escrita | Maior | Menor |
+| Risco de perda | Mínimo | Possível |
+
+## Sharding (Particionamento)
+
+Dividir os dados horizontalmente em múltiplos bancos (shards).
+
+### Estratégias de Sharding
+
+**Range-Based Sharding:**
+Particiona por faixa de valores (ex: usuários 1-1000 no shard A, 1001-2000 no shard B).
+
+**Hash-Based Sharding:**
+Aplica uma função hash na shard key para determinar o shard.
+
+```text
+shard = hash(user_id) % N
+```
+
+**Directory-Based Sharding:**
+Mantém um serviço de lookup que mapeia cada dado ao seu shard.
+
+### Escolhendo a Shard Key
+
+A escolha da shard key é crítica. Uma chave mal escolhida causa:
+- Shards desbalanceados (hotspots)
+- Consultas cross-shard lentas
+- Dificuldade para rebalancear
+
+## Teorema CAP
+
+Em sistemas distribuídos, é possível garantir no máximo duas de três propriedades:
+
+- **C**onsistency: todos os nós veem os mesmos dados
+- **A**vailability: cada requisição recebe uma resposta (mesmo que desatualizada)
+- **P**artition Tolerance: o sistema continua operando mesmo com falhas de rede
+
+### Trade-offs na Prática
+
+- **CP**: consistência sobre disponibilidade durante partições (ex: sistemas bancários)
+- **AP**: disponibilidade sobre consistência (ex: redes sociais)
+- **CA**: não existe em sistemas distribuídos (partições sempre podem ocorrer)
+
+## Conclusão
+
+Bancos de dados em larga escala exigem planejamento cuidadoso. Replicação, sharding e o entendimento do Teorema CAP são fundamentais para projetar sistemas distribuídos robustos.

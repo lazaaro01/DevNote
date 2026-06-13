@@ -1,0 +1,99 @@
+---
+title: "OCP — Princípio do Aberto/Fechado"
+description: "O Open/Closed Principle: entidades devem estar abertas para extensão, mas fechadas para modificação."
+category: "Princípios SOLID"
+tags:
+  - SOLID
+  - OCP
+  - Aberto/Fechado
+  - Extensibilidade
+featured: true
+publishedAt: "2026-06-11"
+---
+
+## O que é o OCP?
+
+O Princípio do Aberto/Fechado (Open/Closed Principle) estabelece que **entidades de software (classes, módulos, funções) devem estar abertas para extensão, mas fechadas para modificação**.
+
+## Problema
+
+Um sistema de descontos que usa condicionais para cada tipo de cliente:
+
+```typescript
+// ❌ Violação do OCP
+class DiscountCalculator {
+  calculate(price: number, customerType: string): number {
+    if (customerType === "regular") {
+      return price * 0.05;
+    } else if (customerType === "vip") {
+      return price * 0.15;
+    } else if (customerType === "premium") {
+      return price * 0.25;
+    }
+    return 0;
+  }
+}
+```
+
+Adicionar um novo tipo de cliente exige modificar a classe, violando o OCP.
+
+## Solução
+
+Usar polimorfismo para estender o comportamento sem modificar código existente:
+
+```typescript
+// ✅ OCP respeitado
+interface DiscountStrategy {
+  calculate(price: number): number;
+}
+
+class RegularDiscount implements DiscountStrategy {
+  calculate(price: number): number {
+    return price * 0.05;
+  }
+}
+
+class VipDiscount implements DiscountStrategy {
+  calculate(price: number): number {
+    return price * 0.15;
+  }
+}
+
+class PremiumDiscount implements DiscountStrategy {
+  calculate(price: number): number {
+    return price * 0.25;
+  }
+}
+
+// Nova estratégia sem modificar código existente
+class BlackFridayDiscount implements DiscountStrategy {
+  calculate(price: number): number {
+    return price * 0.50;
+  }
+}
+
+class DiscountCalculator {
+  constructor(private strategy: DiscountStrategy) {}
+
+  calculate(price: number): number {
+    return this.strategy.calculate(price);
+  }
+}
+```
+
+## Benefícios
+
+- **Extensibilidade**: novas funcionalidades são adicionadas via novas classes, não modificações
+- **Estabilidade**: código existente não precisa ser alterado, reduzindo riscos de bugs
+- **Reuso**: comportamentos podem ser compostos e reutilizados
+
+## Como Aplicar na Prática
+
+1. Identifique pontos de variação no sistema
+2. Crie abstrações (interfaces/classes abstratas) para esses pontos
+3. Faça o código depender das abstrações, não das implementações
+4. Adicione novas implementações conforme necessário
+
+## Conclusão
+
+O OCP é essencial para construir sistemas extensíveis e de baixo risco. Ao projetar para extensão, você reduz o impacto de mudanças e permite que o sistema cresça de forma sustentável.

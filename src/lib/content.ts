@@ -14,6 +14,11 @@ const categoryNames: Record<string, string> = {
   architecture: "Arquitetura",
   career: "Carreira",
   algorithms: "Algoritmos",
+  "system-design": "System Design",
+  "design-patterns": "Design Patterns",
+  solid: "Princípios SOLID",
+  resiliencia: "Resiliência de Sistemas",
+  okrs: "OKRs",
 };
 
 export function getCategories(): CategoryInfo[] {

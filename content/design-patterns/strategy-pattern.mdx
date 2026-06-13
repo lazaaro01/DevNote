@@ -1,0 +1,88 @@
+---
+title: "Strategy Pattern"
+description: "Aprenda o padrão Strategy com exemplos práticos em código para substituir algoritmos em tempo de execução."
+category: "Design Patterns"
+tags:
+  - Design Patterns
+  - Strategy
+  - Comportamental
+  - GoF
+featured: true
+publishedAt: "2026-06-11"
+---
+
+## Strategy Pattern
+
+O padrão Strategy define uma família de algoritmos, encapsula cada um deles e os torna intercambiáveis em tempo de execução sem alterar o cliente que os utiliza.
+
+## Problema
+
+Imagine um sistema de cálculo de frete. Inicialmente só existe frete normal, mas depois surgem frete expresso e frete internacional. Usar condicionais (`if/else` ou `switch`) torna o código rígido e difícil de estender.
+
+## Solução
+
+Criar uma interface comum para todos os algoritmos e implementar cada variação separadamente.
+
+## Exemplo em TypeScript
+
+```typescript
+// Strategy interface
+interface FreightStrategy {
+  calculate(weight: number, distance: number): number;
+}
+
+// Concrete strategies
+class NormalFreight implements FreightStrategy {
+  calculate(weight: number, distance: number): number {
+    return weight * 0.5 + distance * 0.1;
+  }
+}
+
+class ExpressFreight implements FreightStrategy {
+  calculate(weight: number, distance: number): number {
+    return weight * 1.0 + distance * 0.3 + 10;
+  }
+}
+
+class InternationalFreight implements FreightStrategy {
+  calculate(weight: number, distance: number): number {
+    return weight * 2.0 + distance * 0.5 + 25;
+  }
+}
+
+// Context
+class ShippingCalculator {
+  constructor(private strategy: FreightStrategy) {}
+
+  setStrategy(strategy: FreightStrategy) {
+    this.strategy = strategy;
+  }
+
+  calculate(weight: number, distance: number): number {
+    return this.strategy.calculate(weight, distance);
+  }
+}
+
+// Usage
+const calculator = new ShippingCalculator(new NormalFreight());
+console.log(calculator.calculate(5, 100)); // Frete normal
+
+calculator.setStrategy(new ExpressFreight());
+console.log(calculator.calculate(5, 100)); // Frete expresso
+```
+
+## Benefícios
+
+- **Princípio Aberto/Fechado**: novas estratégias podem ser adicionadas sem modificar código existente
+- **Isolamento**: cada algoritmo fica em sua própria classe
+- **Substituição em tempo de execução**: o comportamento pode ser alterado dinamicamente
+
+## Quando Usar
+
+- Quando múltiplas variações de um algoritmo existem
+- Quando você quer evitar condicionais complexas
+- Quando o algoritmo precisa ser trocado em tempo de execução
+
+## Conclusão
+
+O Strategy Pattern é um dos padrões mais úteis no dia a dia. Ele promove código limpo, testável e extensível, sendo amplamente utilizado em frameworks modernos.

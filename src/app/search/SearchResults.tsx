@@ -1,5 +1,6 @@
 import ContentCard from "@/components/ContentCard";
 import { getContentList } from "@/lib/content";
+import type { ContentMeta } from "@/lib/types";
 
 function normalize(text: string): string {
   return text
@@ -8,44 +9,59 @@ function normalize(text: string): string {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-export default async function SearchResults({ query }: { query: string }) {
-  if (!query.trim()) {
-    return <p className="text-text-secondary">Digite um termo para pesquisar.</p>;
-  }
-
+export default async function SearchResults({
+  query,
+}: {
+  query: string;
+}) {
   const allContent = getContentList();
   const normalizedQuery = normalize(query);
 
-  const results = allContent.filter((content) => {
-    const title = normalize(content.title);
-    const description = normalize(content.description);
-    const category = normalize(content.category);
-    const tags = content.tags.map((t) => normalize(t));
-
+  if (!normalizedQuery) {
     return (
-      title.includes(normalizedQuery) ||
-      description.includes(normalizedQuery) ||
-      category.includes(normalizedQuery) ||
-      tags.some((tag) => tag.includes(normalizedQuery))
+      <p className="text-text-secondary">
+        Digite um termo para buscar nos conteúdos.
+      </p>
     );
+  }
+
+  const results: ContentMeta[] = allContent.filter((item) => {
+    const searchable = [
+      item.title,
+      item.description,
+      item.category,
+      ...item.tags,
+    ]
+      .map(normalize)
+      .join(" ");
+
+    return searchable.includes(normalizedQuery);
   });
 
   if (results.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-text-secondary text-lg mb-2">Nenhum resultado encontrado</p>
-        <p className="text-text-secondary text-sm">
-          Tente usar termos diferentes ou verifique a ortografia.
+      <div className="animate-fade-in">
+        <p className="text-text-secondary">
+          Nenhum resultado encontrado para &ldquo;{query}&rdquo;.
+        </p>
+        <p className="text-sm text-text-secondary mt-2">
+          Tente termos diferentes ou mais genéricos.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {results.map((content) => (
-        <ContentCard key={`${content.category}-${content.slug}`} content={content} />
-      ))}
+    <div className="animate-fade-in">
+      <p className="text-sm text-text-secondary mb-6">
+        {results.length}{" "}
+        {results.length === 1 ? "resultado encontrado" : "resultados encontrados"}
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {results.map((content) => (
+          <ContentCard key={`${content.categorySlug}-${content.slug}`} content={content} />
+        ))}
+      </div>
     </div>
   );
 }

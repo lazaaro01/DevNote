@@ -1,0 +1,89 @@
+---
+title: "LSP — Princípio da Substituição de Liskov"
+description: "O Liskov Substitution Principle: subtipos devem ser substituíveis por seus tipos base sem alterar a corretude do programa."
+category: "Princípios SOLID"
+tags:
+  - SOLID
+  - LSP
+  - Substituição de Liskov
+  - Herança
+featured: false
+publishedAt: "2026-06-12"
+---
+
+## O que é o LSP?
+
+O Princípio da Substituição de Liskov (Liskov Substitution Principle), introduzido por Barbara Liskov, afirma que **se S é um subtipo de T, então objetos de T podem ser substituídos por objetos de S sem alterar as propriedades desejáveis do programa**.
+
+Em termos práticos: uma subclasse deve se comportar como sua superclasse.
+
+## Problema Clássico: Retângulo vs Quadrado
+
+```typescript
+// ❌ Violação do LSP
+class Rectangle {
+  constructor(protected width: number, protected height: number) {}
+
+  setWidth(width: number) { this.width = width; }
+  setHeight(height: number) { this.height = height; }
+  getArea(): number { return this.width * this.height; }
+}
+
+class Square extends Rectangle {
+  setWidth(width: number) {
+    this.width = width;
+    this.height = width; // Mantém proporção
+  }
+
+  setHeight(height: number) {
+    this.width = height;
+    this.height = height;
+  }
+}
+
+// Cliente que espera um retângulo
+function increaseWidth(rect: Rectangle) {
+  rect.setWidth(rect.width + 10);
+  console.log(rect.getArea()); // Resultado incorreto para Square!
+}
+```
+
+O `Square` viola o LSP porque não se comporta como um `Rectangle`: modificar a largura também altera a altura.
+
+## Solução: Favorecer Composição sobre Herança
+
+```typescript
+// ✅ LSP respeitado
+interface Shape {
+  getArea(): number;
+}
+
+class Rectangle implements Shape {
+  constructor(private width: number, private height: number) {}
+
+  getArea(): number { return this.width * this.height; }
+}
+
+class Square implements Shape {
+  constructor(private side: number) {}
+
+  getArea(): number { return this.side * this.side; }
+}
+```
+
+## Regras para Respeitar o LSP
+
+1. **Assinaturas compatíveis**: métodos da subclasse devem aceitar os mesmos parâmetros
+2. **Pré-condições**: não podem ser mais restritivas que as da superclasse
+3. **Pós-condições**: não podem ser mais fracas que as da superclasse
+4. **Invariantes**: propriedades da superclasse devem ser mantidas
+
+## Sinais de Violação
+
+- Subclasses que sobrescrevem métodos para lançar exceções não previstas
+- Métodos que não fazem nada (vazios) em subclasses
+- Condicionais verificando `instanceof` ou tipos concretos
+
+## Conclusão
+
+O LSP é fundamental para o uso seguro de polimorfismo. Ao garantir que subtipos são substituíveis, você constrói hierarquias confiáveis e evita bugs sutis em código orientado a objetos.

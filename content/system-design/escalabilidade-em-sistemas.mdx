@@ -1,0 +1,98 @@
+---
+title: "Escalabilidade em Sistemas"
+description: "Estratégias de escalabilidade horizontal e vertical, load balancing, caching e muito mais."
+category: "System Design"
+tags:
+  - System Design
+  - Escalabilidade
+  - Load Balancer
+  - Caching
+  - Arquitetura
+featured: true
+publishedAt: "2026-06-11"
+---
+
+## O que é Escalabilidade?
+
+Escalabilidade é a capacidade de um sistema lidar com cargas crescentes sem degradação de performance. Existem duas abordagens principais:
+
+## Escalabilidade Vertical vs Horizontal
+
+### Vertical (Scale Up)
+
+Adicionar mais recursos à mesma máquina (CPU, RAM, disco).
+
+**Vantagens:**
+- Simples de implementar
+- Sem alterações na arquitetura
+- Menor complexidade operacional
+
+**Desvantagens:**
+- Limite físico (hardware máximo)
+- Custo crescente não-linear
+- Ponto único de falha
+
+### Horizontal (Scale Out)
+
+Adicionar mais máquinas ao pool de recursos.
+
+**Vantagens:**
+- Escalabilidade teórica infinita
+- Melhor relação custo-benefício
+- Alta disponibilidade (redundância)
+
+**Desvantagens:**
+- Complexidade operacional
+- Requer load balancing
+- Consistência de dados mais desafiadora
+
+## Load Balancing
+
+O load balancer distribui requisições entre múltiplos servidores:
+
+```text
+Clientes → DNS → Load Balancer → [Servidor 1, Servidor 2, Servidor N]
+```
+
+**Algoritmos comuns:**
+- **Round Robin**: distribuição sequencial
+- **Least Connections**: envia para o servidor com menos conexões ativas
+- **IP Hash**: mesma cliente sempre vai para o mesmo servidor
+- **Weighted**: baseado em capacidade dos servidores
+
+## Caching
+
+Cache armazena dados frequentemente acessados para reduzir latência e carga no backend.
+
+### Níveis de Cache
+
+1. **Cliente**: cache do navegador (HTTP caching)
+2. **CDN**: conteúdo estático distribuído geograficamente
+3. **Cache de Aplicação**: Redis, Memcached
+4. **Cache de Banco de Dados**: query cache, buffer pool
+
+### Estratégias de Cache
+
+- **Cache Aside**: aplicação verifica o cache antes do banco
+- **Read Through**: cache é responsável por buscar do banco
+- **Write Through**: escrita é feita no cache e no banco simultaneamente
+- **Write Behind**: escrita é feita no cache e depois persistida no banco
+
+## Database Scaling
+
+### Read Replicas
+
+Réplicas de leitura do banco principal para distribuir consultas:
+
+```text
+Escrita → [Primary DB]
+Leitura → [Replica 1, Replica 2, Replica 3]
+```
+
+### Sharding
+
+Particionamento horizontal dos dados em múltiplos bancos com base em uma chave (shard key).
+
+## Conclusão
+
+A escolha entre escalabilidade vertical e horizontal depende do contexto, orçamento e requisitos de disponibilidade. Na prática, sistemas modernos combinam ambas as abordagens.

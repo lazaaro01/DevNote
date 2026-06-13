@@ -1,0 +1,94 @@
+---
+title: "ISP — Princípio da Segregação de Interfaces"
+description: "O Interface Segregation Principle: interfaces específicas são melhores que interfaces genéricas."
+category: "Princípios SOLID"
+tags:
+  - SOLID
+  - ISP
+  - Segregação de Interfaces
+  - Coesão
+featured: false
+publishedAt: "2026-06-13"
+---
+
+## O que é o ISP?
+
+O Princípio da Segregação de Interfaces (Interface Segregation Principle) afirma que **nenhum cliente deve ser forçado a depender de métodos que não utiliza**. Interfaces grandes e genéricas devem ser divididas em interfaces menores e mais específicas.
+
+## Problema
+
+Uma interface `Worker` que obriga todos os trabalhadores a implementar métodos que não fazem sentido:
+
+```typescript
+// ❌ Violação do ISP
+interface Worker {
+  work(): void;
+  eat(): void;
+  sleep(): void;
+}
+
+class HumanWorker implements Worker {
+  work() { console.log("Trabalhando..."); }
+  eat() { console.log("Comendo..."); }
+  sleep() { console.log("Dormindo..."); }
+}
+
+class RobotWorker implements Worker {
+  work() { console.log("Trabalhando..."); }
+  eat() { throw new Error("Robôs não comem!"); }
+  sleep() { throw new Error("Robôs não dormem!"); }
+}
+```
+
+O `RobotWorker` é forçado a implementar métodos que não fazem sentido, violando o ISP.
+
+## Solução
+
+Dividir a interface em interfaces menores e específicas:
+
+```typescript
+// ✅ ISP respeitado
+interface Workable {
+  work(): void;
+}
+
+interface Eatable {
+  eat(): void;
+}
+
+interface Sleepable {
+  sleep(): void;
+}
+
+class HumanWorker implements Workable, Eatable, Sleepable {
+  work() { console.log("Trabalhando..."); }
+  eat() { console.log("Comendo..."); }
+  sleep() { console.log("Dormindo..."); }
+}
+
+class RobotWorker implements Workable {
+  work() { console.log("Trabalhando..."); }
+}
+```
+
+## Benefícios
+
+- **Coesão**: interfaces focadas em comportamentos específicos
+- **Baixo acoplamento**: clientes dependem apenas do que realmente usam
+- **Facilidade de implementação**: classes não precisam implementar métodos irrelevantes
+- **Composição**: interfaces pequenas podem ser combinadas conforme necessário
+
+## Como Identificar Violações
+
+- Interfaces com métodos que geram exceções "não implementado" ou "não suportado"
+- Métodos que retornam `null` ou valores padrão porque não se aplicam
+- Parâmetros não utilizados em implementações
+- Interfaces com muitos métodos não-relacionados
+
+## ISP vs SRP
+
+Enquanto o SRP foca em classes terem uma única responsabilidade, o ISP foca em interfaces não forçarem dependências desnecessárias. Ambos promovem coesão e baixo acoplamento.
+
+## Conclusão
+
+O ISP leva a interfaces mais enxutas e módulos mais desacoplados. Interfaces pequenas e focadas são mais fáceis de implementar, testar e evoluir ao longo do tempo.

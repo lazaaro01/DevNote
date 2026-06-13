@@ -1,0 +1,64 @@
+---
+title: "Introdução à Resiliência em Sistemas"
+description: "Conceitos fundamentais de resiliência em sistemas distribuídos: falhas, fault tolerance e design para falhas."
+category: "Resiliência de Sistemas"
+tags:
+  - Resiliência
+  - Sistemas Distribuídos
+  - Fault Tolerance
+  - Chaos Engineering
+featured: true
+publishedAt: "2026-06-10"
+---
+
+## O que é Resiliência em Sistemas?
+
+Resiliência em sistemas é a capacidade de um sistema continuar operando corretamente mesmo diante de falhas — sejam elas de hardware, software, rede ou infraestrutura.
+
+Em sistemas distribuídos, falhas são inevitáveis. A diferença entre um sistema robusto e um frágil está em como ele lida com essas falhas.
+
+## Falhas São Inevitáveis
+
+Em qualquer sistema distribuído, você pode esperar:
+
+- Queda de servidores (crash, sobrecarga)
+- Falhas de rede (latência, partições, packet loss)
+- Erros de software (bugs, memory leaks)
+- Erros humanos (configurações incorretas, deploys ruins)
+- Dependências externas lentas ou indisponíveis
+
+## Princípios de Resiliência
+
+### 1. Design para Falhas (Failure by Design)
+
+Projetar o sistema assumindo que falhas vão acontecer, em vez de esperar que não aconteçam. Isso inclui ter estratégias de contingência para cada ponto de falha identificado.
+
+### 2. Redundância
+
+Ter múltiplas instâncias de componentes críticos para evitar single points of failure (SPOF). Isso se aplica a servidores, bancos de dados, zonas de disponibilidade, etc.
+
+### 3. Degradação Graciosa (Graceful Degradation)
+
+Quando um componente falha, o sistema deve continuar funcionando — mesmo que com funcionalidades reduzidas. Por exemplo, mostrar dados em cache quando o banco está indisponível.
+
+### 4. Isolamento de Falhas
+
+Conter o impacto de uma falha para evitar que ela se propague (efeito cascata). Técnicas como bulkhead, circuit breaker e限流 (rate limiting) são essenciais.
+
+## Chaos Engineering
+
+Chaos Engineering é a disciplina de experimentar em um sistema para construir confiança na sua capacidade de suportar condições turbulentas.
+
+A Netflix é pioneira nessa prática com ferramentas como o Chaos Monkey, que derruba instâncias aleatoriamente em produção para testar a resiliência.
+
+## Métricas de Resiliência
+
+- **MTBF** (Mean Time Between Failures): tempo médio entre falhas
+- **MTTR** (Mean Time To Recovery): tempo médio para recuperação
+- **SLA** (Service Level Agreement): acordo de nível de serviço
+- **SLO** (Service Level Objective): objetivo de nível de serviço
+- **SLI** (Service Level Indicator): indicador de nível de serviço
+
+## Conclusão
+
+Resiliência não é algo que se adiciona no final — é uma propriedade que deve ser projetada desde o início. Sistemas resilientes aceitam a realidade de que falhas acontecem e são projetados para se recuperar rapidamente.

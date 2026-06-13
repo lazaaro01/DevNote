@@ -1,0 +1,119 @@
+---
+title: "Padrões de Resiliência"
+description: "Circuit Breaker, Retry, Timeout, Bulkhead e Rate Limiter — padrões essenciais para construir sistemas resilientes."
+category: "Resiliência de Sistemas"
+tags:
+  - Resiliência
+  - Circuit Breaker
+  - Retry
+  - Bulkhead
+  - Rate Limiting
+featured: true
+publishedAt: "2026-06-11"
+---
+
+## Padrões de Resiliência
+
+Existem padrões bem estabelecidos para lidar com falhas em sistemas distribuídos. Conheça os principais.
+
+## Circuit Breaker
+
+Inspirado em interruptores elétricos, o Circuit Breaker monitora chamadas a serviços externos e interrompe as requisições quando a taxa de falhas ultrapassa um limite.
+
+### Estados
+
+1. **Closed** (Fechado): requisições fluem normalmente. Falhas são contadas.
+2. **Open** (Aberto): requisições são rejeitadas imediatamente. Após um timeout, vai para Half-Open.
+3. **Half-Open** (Semiaberto): algumas requisições são permitidas para testar se o serviço se recuperou.
+
+```typescript
+class CircuitBreaker {
+  private failures = 0;
+  private state: "closed" | "open" | "half-open" = "closed";
+  private lastFailureTime = 0;
+
+  constructor(
+    private threshold = 5,
+    private timeout = 30000
+  ) {}
+
+  async call<T>(fn: () => Promise<T>): Promise<T> {
+    if (this.state === "open") {
+      if (Date.now() - this.lastFailureTime > this.timeout) {
+        this.state = "half-open";
+      } else {
+        throw new Error("Circuit breaker is open");
+      }
+    }
+
+    try {
+      const result = await fn();
+      this.reset();
+      return result;
+    } catch (error) {
+      this.failures++;
+      this.lastFailureTime = Date.now();
+      if (this.failures >= this.threshold) {
+        this.state = "open";
+      }
+      throw error;
+    }
+  }
+
+  private reset() {
+    this.failures = 0;
+    this.state = "closed";
+  }
+}
+```
+
+## Retry (com Backoff)
+
+Tentar novamente operações que falharam, com intervalos crescentes para não sobrecarregar o sistema.
+
+### Estratégias de Backoff
+
+- **Fixed Delay**: intervalo fixo entre tentativas
+- **Exponential Backoff**: intervalo dobra a cada tentativa
+- **Jitter**: adiciona aleatoriedade ao intervalo para evitar thundering herd
+
+```typescript
+async function retry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+      const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error("Retry exhausted");
+}
+```
+
+## Timeout
+
+Define um limite de tempo para uma operação. Se o limite for excedido, a operação é cancelada.
+
+## Bulkhead (Anteparo)
+
+Isola recursos em pools separados para que uma falha em um componente não afete os demais. Inspirado em navios, onde compartimentos estanques impedem que o navio afunde se um compartimento for alagado.
+
+**Exemplo**: threads pools separadas para diferentes serviços. Se o Serviço A está lento, ele só consome threads do seu pool, não afetando o Serviço B.
+
+## Rate Limiter
+
+Controla a taxa de requisições para evitar sobrecarga. Algoritmos comuns:
+
+- **Token Bucket**: tokens são adicionados a um bucket em intervalo fixo
+- **Leaky Bucket**: requisições entram em uma fila e são processadas em taxa fixa
+- **Sliding Window**: conta requisições em uma janela de tempo deslizante
+
+## Conclusão
+
+Combinar esses padrões é essencial para construir sistemas distribuídos resilientes. Bibliotecas como Resilience4j (Java), Polly (.NET) e opossum (Node.js) implementam esses padrões de forma robusta.

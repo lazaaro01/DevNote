@@ -1,0 +1,105 @@
+---
+title: "DIP — Princípio da Inversão de Dependências"
+description: "O Dependency Inversion Principle: dependa de abstrações, não de implementações concretas."
+category: "Princípios SOLID"
+tags:
+  - SOLID
+  - DIP
+  - Inversão de Dependências
+  - Injeção de Dependência
+featured: true
+publishedAt: "2026-06-14"
+---
+
+## O que é o DIP?
+
+O Princípio da Inversão de Dependências (Dependency Inversion Principle) estabelece duas regras:
+
+1. **Módulos de alto nível não devem depender de módulos de baixo nível. Ambos devem depender de abstrações.**
+2. **Abstrações não devem depender de detalhes. Detalhes devem depender de abstrações.**
+
+## Problema
+
+Uma classe `OrderService` que depende diretamente de `MySQLDatabase`:
+
+```typescript
+// ❌ Violação do DIP
+class MySQLDatabase {
+  save(order: any) {
+    console.log(`Salvando pedido no MySQL: ${order.id}`);
+  }
+}
+
+class OrderService {
+  private database = new MySQLDatabase();
+
+  processOrder(order: any) {
+    // Lógica de negócio...
+    this.database.save(order);
+  }
+}
+```
+
+Para trocar de banco de dados, é necessário modificar `OrderService`.
+
+## Solução
+
+Inverter a dependência através de uma abstração:
+
+```typescript
+// ✅ DIP respeitado
+interface Database {
+  save(order: any): void;
+}
+
+class MySQLDatabase implements Database {
+  save(order: any) {
+    console.log(`Salvando no MySQL: ${order.id}`);
+  }
+}
+
+class PostgreSQLDatabase implements Database {
+  save(order: any) {
+    console.log(`Salvando no PostgreSQL: ${order.id}`);
+  }
+}
+
+class MongoDatabase implements Database {
+  save(order: any) {
+    console.log(`Salvando no MongoDB: ${order.id}`);
+  }
+}
+
+class OrderService {
+  constructor(private database: Database) {}
+
+  processOrder(order: any) {
+    // Lógica de negócio...
+    this.database.save(order);
+  }
+}
+
+// Injeção de dependência
+const service = new OrderService(new PostgreSQLDatabase());
+```
+
+## Injeção de Dependência
+
+O DIP frequentemente é implementado através de Injeção de Dependência (DI), onde as dependências são fornecidas externamente em vez de criadas internamente.
+
+### Formas de Injeção
+
+1. **Construtor**: dependências são passadas no construtor (mais comum)
+2. **Setter**: dependências são definidas via métodos setters
+3. **Interface**: dependências são injetadas através de um método da interface
+
+## Benefícios
+
+- **Baixo acoplamento**: módulos de alto nível não conhecem detalhes de implementação
+- **Testabilidade**: dependências podem ser facilmente substituídas por mocks em testes
+- **Flexibilidade**: implementações podem ser trocadas sem modificar o cliente
+- **Reuso**: módulos podem ser reutilizados em diferentes contextos
+
+## Conclusão
+
+O DIP é um dos princípios mais importantes para arquiteturas limpas. Inverter as dependências coloca o domínio no centro do sistema, livre de detalhes de infraestrutura, seguindo a ideia de que "o que é importante não deve depender do que é secundário".
