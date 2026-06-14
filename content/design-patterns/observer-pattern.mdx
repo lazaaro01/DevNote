@@ -24,6 +24,26 @@ Em um sistema de e-commerce, quando um pedido é aprovado, vários componentes p
 
 O sujeito (subject) mantém uma lista de observadores e os notifica quando seu estado muda. Os observadores decidem como reagir.
 
+## Fluxo do Pattern
+
+```mermaid
+sequenceDiagram
+    participant Client as Cliente
+    participant Order as OrderService
+    participant Email as EmailService
+    participant Stock as StockService
+    participant Invoice as InvoiceService
+
+    Client->>Order: approveOrder("12345")
+    Order->>Email: update("order.approved")
+    Email-->>Order: email enviado
+    Order->>Stock: update("order.approved")
+    Stock-->>Order: estoque atualizado
+    Order->>Invoice: update("order.approved")
+    Invoice-->>Order: NF gerada
+    Order-->>Client: pedido aprovado
+```
+
 ## Exemplo em TypeScript
 
 ```typescript

@@ -19,6 +19,14 @@ JOINs são cláusulas SQL usadas para combinar registros de duas ou mais tabelas
 
 Retorna apenas os registros com correspondência em ambas as tabelas:
 
+```mermaid
+flowchart LR
+    U[(users)] -- "INNER JOIN
+    u.id = o.user_id" --> O[(orders)]
+    style U fill:#8b5cf6,color:#fff
+    style O fill:#3b82f6,color:#fff
+```
+
 ```sql
 SELECT u.name, o.order_date, o.total
 FROM users u
@@ -34,6 +42,16 @@ INNER JOIN orders o ON u.id = o.user_id;
 
 Retorna todos os registros da tabela esquerda e os correspondentes da direita:
 
+```mermaid
+flowchart LR
+    U[(users)] -- "LEFT JOIN
+    todos os users" --> O[(orders)]
+    U -.->|NULL se sem pedido| NO[NULL]
+    style U fill:#8b5cf6,color:#fff,stroke-width:3px
+    style O fill:#3b82f6,color:#fff
+    style NO fill:#ef4444,color:#fff
+```
+
 ```sql
 SELECT u.name, o.order_date, o.total
 FROM users u
@@ -44,6 +62,16 @@ LEFT JOIN orders o ON u.id = o.user_id;
 
 Retorna todos os registros da tabela direita e os correspondentes da esquerda:
 
+```mermaid
+flowchart LR
+    U[(users)] -- "RIGHT JOIN
+    todos os orders" --> O[(orders)]
+    O -.->|NULL se sem usuário| NU[NULL]
+    style U fill:#8b5cf6,color:#fff
+    style O fill:#3b82f6,color:#fff,stroke-width:3px
+    style NU fill:#ef4444,color:#fff
+```
+
 ```sql
 SELECT u.name, o.order_date, o.total
 FROM users u
@@ -53,6 +81,18 @@ RIGHT JOIN orders o ON u.id = o.user_id;
 ## FULL OUTER JOIN
 
 Retorna todos os registros quando há correspondência em qualquer uma das tabelas:
+
+```mermaid
+flowchart LR
+    U[(users)] -- "FULL OUTER JOIN
+    todos os registros" --> O[(orders)]
+    U -.->|"NULL (sem match)"| X1[ ]
+    O -.->|"NULL (sem match)"| X2[ ]
+    style U fill:#8b5cf6,color:#fff
+    style O fill:#3b82f6,color:#fff
+    style X1 fill:#ef4444,color:#fff
+    style X2 fill:#ef4444,color:#fff
+```
 
 ```sql
 SELECT u.name, o.order_date

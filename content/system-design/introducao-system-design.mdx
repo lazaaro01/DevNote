@@ -54,11 +54,62 @@ Definir as entidades, seus atributos e relacionamentos é o primeiro passo técn
 
 A escolha da arquitetura define como os componentes se comunicam:
 
+```mermaid
+flowchart TD
+    subgraph Monolito["Monolito"]
+        M_UI[Interface]
+        M_Business[Negócio]
+        M_Data[Dados]
+        M_UI --> M_Business --> M_Data
+    end
+
+    subgraph Micro["Microsserviços"]
+        direction LR
+        MS1[Serviço A]
+        MS2[Serviço B]
+        MS3[Serviço C]
+        MS1 <--> MS2 <--> MS3
+    end
+
+    subgraph Camadas["Arquitetura em Camadas"]
+        direction TB
+        C1[Apresentação]
+        C2[Domínio]
+        C3[Infraestrutura]
+        C1 --> C2 --> C3
+    end
+
+    style Monolito fill:#1e293b,color:#f1f5f9
+    style Micro fill:#1e293b,color:#f1f5f9
+    style Camadas fill:#1e293b,color:#f1f5f9
+```
+
 - **Monolito**: simplicidade inicial, difícil escalar
 - **Microsserviços**: escalabilidade independente, complexidade operacional
 - **Arquitetura em Camadas**: separação de responsabilidades
 
 ## Fluxo de Trabalho Recomendado
+
+```mermaid
+flowchart LR
+    A[1. Entender requisitos] --> B[2. Estimar escala]
+    B --> C[3. Modelar dados]
+    C --> D[4. Projetar data flow]
+    D --> E[5. Desenhar arquitetura]
+    E --> F[6. Identificar gargalos]
+    F --> G[7. Iterar e refinar]
+    G -.->|feedback| C
+    G -.->|feedback| D
+    G -.->|feedback| E
+
+    style A fill:#8b5cf6,color:#fff
+    style B fill:#7c3aed,color:#fff
+    style C fill:#6d28d9,color:#fff
+    style D fill:#5b21b6,color:#fff
+    style E fill:#4c1d95,color:#fff
+    style F fill:#9333ea,color:#fff
+    style G fill:#22c55e,color:#fff
+```
 
 1. Entender e esclarecer os requisitos
 2. Estimar a escala esperada

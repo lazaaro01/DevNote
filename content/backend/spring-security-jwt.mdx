@@ -16,6 +16,36 @@ publishedAt: "2026-06-01"
 
 JSON Web Tokens (JWT) são amplamente utilizados para autenticação em APIs REST modernas. Neste guia, vamos implementar um sistema completo de autenticação utilizando Spring Security e JWT.
 
+## Fluxo de Autenticação
+
+```mermaid
+sequenceDiagram
+    participant Client as Cliente
+    participant API as API REST
+    participant Auth as AuthController
+    participant Jwt as JwtService
+    participant Security as SecurityFilterChain
+    participant DB as Banco
+
+    Client->>API: POST /auth/login
+    API->>Auth: login(credentials)
+    Auth->>DB: buscar usuário
+    DB-->>Auth: UserDetails
+    Auth->>Jwt: generateToken(user)
+    Jwt-->>Auth: JWT token
+    Auth-->>Client: { token, expiresIn }
+
+    Note over Client,API: Requisições autenticadas
+
+    Client->>API: GET /recurso (Authorization: Bearer JWT)
+    API->>Security: JwtAuthenticationFilter
+    Security->>Jwt: extractUsername(token)
+    Jwt-->>Security: username
+    Security->>Security: validar token
+    Security-->>API: autenticado
+    API-->>Client: 200 OK (dados)
+```
+
 ## Configuração do Projeto
 
 ### Dependências Maven

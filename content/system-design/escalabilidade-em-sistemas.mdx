@@ -50,8 +50,18 @@ Adicionar mais máquinas ao pool de recursos.
 
 O load balancer distribui requisições entre múltiplos servidores:
 
-```text
-Clientes → DNS → Load Balancer → [Servidor 1, Servidor 2, Servidor N]
+```mermaid
+flowchart LR
+    C[Clientes] --> DNS[DNS]
+    DNS --> LB[Load Balancer]
+    LB --> S1[Servidor 1]
+    LB --> S2[Servidor 2]
+    LB --> SN[Servidor N]
+    subgraph Pool de Servidores
+        S1
+        S2
+        SN
+    end
 ```
 
 **Algoritmos comuns:**
@@ -84,9 +94,17 @@ Cache armazena dados frequentemente acessados para reduzir latência e carga no 
 
 Réplicas de leitura do banco principal para distribuir consultas:
 
-```text
-Escrita → [Primary DB]
-Leitura → [Replica 1, Replica 2, Replica 3]
+```mermaid
+flowchart LR
+    subgraph App[Aplicação]
+        W[Escrita]
+        R[Leitura]
+    end
+    W --> P[(Primary DB)]
+    R --> P
+    P --> RP1[(Replica 1)]
+    P --> RP2[(Replica 2)]
+    P --> RP3[(Replica 3)]
 ```
 
 ### Sharding
