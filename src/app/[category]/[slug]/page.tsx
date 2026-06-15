@@ -10,6 +10,7 @@ import LayoutSwitcher from "@/components/layouts/LayoutSwitcher";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
 import ArticleToolbar from "@/components/ArticleToolbar";
 import Lightbox from "@/components/Lightbox";
+import BackToTop from "@/components/BackToTop";
 import {
   getContent,
   getRelatedContent,
@@ -172,6 +173,7 @@ export default async function ContentPage({
           </section>
         )}
       </LayoutSwitcher>
+      <BackToTop />
       <ArticleToolbar />
       <Lightbox />
     </div>

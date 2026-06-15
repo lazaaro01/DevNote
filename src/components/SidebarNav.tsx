@@ -43,7 +43,7 @@ export default function SidebarNav({
               }`}
               style={isActive ? { background: colors.bg } : {}}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <span
                   className="w-2 h-2 rounded-full flex-shrink-0 transition-transform duration-200"
                   style={{
@@ -52,7 +52,7 @@ export default function SidebarNav({
                     transform: isActive ? "scale(1.2)" : "scale(1)",
                   }}
                 />
-                <span>{cat.name}</span>
+                <span className="truncate">{cat.name}</span>
               </div>
               <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">
                 {cat.count}

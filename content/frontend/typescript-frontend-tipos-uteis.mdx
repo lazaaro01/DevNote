@@ -1,0 +1,229 @@
+---
+title: "TypeScript no Frontend: Tipos que Salvam Vidas"
+description: "Aprenda a usar TypeScript de forma eficiente no frontend: tipos para props, genéricos em hooks, inferência avançada e padrões úteis."
+category: "Frontend"
+tags:
+  - TypeScript
+  - React
+  - Tipos
+  - Frontend
+featured: false
+publishedAt: "2026-06-15"
+---
+
+## Por Que TypeScript no Frontend?
+
+TypeScript não é só "JavaScript com tipos" — é uma ferramenta de design que documenta suas intenções e previne categorias inteiras de bugs antes mesmo de rodar o código.
+
+## Tipos para Props
+
+```tsx
+// Básico
+interface ButtonProps {
+  label: string;
+  variant: "primary" | "secondary" | "ghost";
+  size: "sm" | "md" | "lg";
+  disabled?: boolean;
+  onClick: () => void;
+  children?: React.ReactNode;
+}
+
+function Button({ label, variant = "primary", size = "md", disabled, onClick, children }: ButtonProps) {
+  return (
+    <button
+      className={`btn btn-${variant} btn-${size}`}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {label}{children}
+    </button>
+  );
+}
+```
+
+### Pattern: Variant como Union Type
+
+```tsx
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+
+const buttonStyles: Record<ButtonVariant, string> = {
+  primary: "bg-blue-500 text-white",
+  secondary: "bg-gray-500 text-white",
+  ghost: "bg-transparent border",
+  danger: "bg-red-500 text-white",
+};
+
+function Button({ variant = "primary" }: { variant?: ButtonVariant }) {
+  return <button className={buttonStyles[variant]} />;
+  // ✅ Se adicionar nova variant, o Record obriga o estilo
+}
+```
+
+## Genéricos em Hooks
+
+```tsx
+// Hook genérico de fetch
+function useFetch<T>(url: string) {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    fetch(url)
+      .then((res) => res.json() as Promise<T>)
+      .then(setData)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [url]);
+
+  return { data, loading, error };
+}
+
+// Uso com inferência de tipo
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+function UserList() {
+  const { data: users, loading } = useFetch<User[]>("/api/users");
+  // users é User[] | null ✅
+  return <div>{users?.map((u) => <p>{u.name}</p>)}</div>;
+}
+```
+
+### Hook de Paginação Genérico
+
+```tsx
+interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+function usePaginated<T>(url: string, pageSize = 10) {
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState<T[]>([]);
+
+  useEffect(() => {
+    fetch(`${url}?page=${page}&limit=${pageSize}`)
+      .then((res) => res.json() as Promise<PaginatedResponse<T>>)
+      .then((res) => setData(res.data));
+  }, [url, page]);
+
+  return { data, page, setPage };
+}
+```
+
+## Tipos para Eventos
+
+```tsx
+// Form events
+function Form() {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // ...
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input onChange={handleChange} />
+    </form>
+  );
+}
+```
+
+### Pattern: Tipos de Evento para Componentes
+
+```tsx
+interface InputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void; // Não expõe o event
+  onBlur?: () => void;
+  error?: string;
+}
+
+function Input({ label, value, onChange, onBlur, error }: InputProps) {
+  return (
+    <label>
+      {label}
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        className={error ? "border-red-500" : ""}
+      />
+      {error && <span className="text-red-500 text-sm">{error}</span>}
+    </label>
+  );
+}
+```
+
+## Pattern: Discriminated Unions
+
+```tsx
+// Estado de requisição tipado com união discriminada
+type RequestState<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: string };
+
+function Dashboard() {
+  const [state, setState] = useState<RequestState<User[]>>({ status: "idle" });
+
+  const load = async () => {
+    setState({ status: "loading" });
+    try {
+      const data = await fetch("/api/users").then(r => r.json());
+      setState({ status: "success", data });
+    } catch {
+      setState({ status: "error", error: "Falha ao carregar" });
+    }
+  };
+
+  // Type narrowing automático
+  switch (state.status) {
+    case "idle": return <button onClick={load}>Carregar</button>;
+    case "loading": return <Spinner />;
+    case "success": return <UserList users={state.data} />; // ✅ data acessível
+    case "error": return <Error message={state.error} />; // ✅ error acessível
+  }
+}
+```
+
+## Pattern: Component Polymorphic
+
+```tsx
+type AsProp<C extends React.ElementType> = {
+  as?: C;
+};
+
+type PropsWithAs<C extends React.ElementType, P = {}> =
+  AsProp<C> & P & Omit<React.ComponentPropsWithoutRef<C>, keyof AsProp<C>>;
+
+function Text<C extends React.ElementType = "span">({
+  as,
+  children,
+  ...props
+}: PropsWithAs<C, { className?: string }>) {
+  const Component = as || "span";
+  return <Component {...props}>{children}</Component>;
+}
+
+// Uso:
+<Text as="h1" className="text-2xl">Título</Text>
+<Text as="p">Parágrafo</Text>
+<Text as="a" href="/">Link</Text>
+```
+
+## Conclusão
+
+TypeScript no frontend não é sobre tipos complexos — é sobre usar os padrões certos para cada situação. Props tipadas, genéricos em hooks e discriminated unions já resolvem 90% dos casos. O resto você aprende conforme precisa.

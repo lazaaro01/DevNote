@@ -34,7 +34,7 @@ export default function CategoryCard({ category }: { category: CategoryInfo }) {
         <Icon size={20} />
       </div>
       <div className="relative">
-        <h3 className="font-semibold text-text group-hover:text-accent transition-colors">
+        <h3 className="font-semibold text-text group-hover:text-accent transition-colors truncate">
           {category.name}
         </h3>
         <p className="text-sm text-text-secondary">

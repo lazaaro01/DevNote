@@ -1,0 +1,276 @@
+---
+title: "Acessibilidade (a11y) no Frontend"
+description: "Guia de acessibilidade web: ARIA, navegação por teclado, contraste, semântica HTML e boas práticas para frontends inclusivos."
+category: "Frontend"
+tags:
+  - Acessibilidade
+  - a11y
+  - ARIA
+  - Inclusão
+  - HTML
+featured: false
+publishedAt: "2026-06-15"
+---
+
+## Por Que Acessibilidade Importa
+
+- **~15%** da população mundial tem algum tipo de deficiência
+- Sites inacessíveis podem ser processados judicialmente (Lei Brasileira de Inclusão)
+- Acessibilidade melhora a experiência para **todos** os usuários
+- Google ranqueia melhor sites acessíveis
+
+## Semântica HTML: A Base
+
+Antes de ARIA, use HTML semântico. A maioria dos problemas de acessibilidade é resolvida com marcação correta.
+
+```html
+<!-- ❌ Ruim: divs semânticas -->
+<div class="nav">
+  <div class="nav-item" onclick="navigate()">Home</div>
+</div>
+<div class="main">
+  <div class="section">
+    <div class="heading">Título</div>
+  </div>
+</div>
+
+<!-- ✅ Bom: HTML semântico -->
+<nav>
+  <button onclick="navigate()">Home</button>
+</nav>
+<main>
+  <section>
+    <h1>Título</h1>
+  </section>
+</main>
+```
+
+### Elementos Semânticos Essenciais
+
+| Elemento | Substitui | Benefício |
+|----------|-----------|-----------|
+| `<nav>` | `<div class="nav">` | Leitores de tela identificam navegação |
+| `<main>` | `<div class="main">` | Pulo direto para o conteúdo |
+| `<button>` | `<div onclick="">` | Foco, enter/space, acessível por padrão |
+| `<label>` | Placeholder como label | Campo identificado no leitor de tela |
+| `<h1>` a `<h6>` | `<div class="title">` | Estrutura hierárquica navegável |
+
+## ARIA (Accessible Rich Internet Applications)
+
+ARIA é para quando HTML não é suficiente:
+
+```html
+<!-- Progress bar que não existe em HTML puro -->
+<div
+  role="progressbar"
+  aria-valuenow="60"
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-label="Progresso do upload"
+>
+  <div class="bar" style="width: 60%"></div>
+</div>
+
+<!-- Tabs -->
+<div role="tablist" aria-label="Configurações">
+  <button role="tab" aria-selected="true" aria-controls="panel-1">
+    Geral
+  </button>
+  <button role="tab" aria-selected="false" aria-controls="panel-2">
+    Avançado
+  </button>
+</div>
+<div role="tabpanel" id="panel-1">
+  Conteúdo da aba Geral
+</div>
+```
+
+### Regra Importante: Não Use ARIA se o HTML Nativo Resolve
+
+```html
+<!-- ❌ ARIA desnecessário -->
+<div role="button" tabindex="0" onclick="submit()">Enviar</div>
+
+<!-- ✅ HTML nativo -->
+<button onclick="submit()">Enviar</button>
+```
+
+## Navegação por Teclado
+
+### Focus Order
+
+```css
+/* ✅ Visível (obrigatório) */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ❌ Nunca faça */
+*:focus {
+  outline: none;
+}
+```
+
+### Skip Link
+
+```html
+<!-- Link de pular para o conteúdo (primeiro link do body) -->
+<a href="#main-content" class="skip-link">
+  Pular para o conteúdo principal
+</a>
+
+<main id="main-content">
+  <!-- conteúdo -->
+</main>
+```
+
+```css
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  z-index: 999;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+```
+
+### Gerenciando Foco em Modais
+
+```tsx
+import { useEffect, useRef } from "react";
+
+function Modal({ isOpen, onClose, children }: {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Foco no modal ao abrir
+    modalRef.current?.focus();
+
+    // Travar foco dentro do modal
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "Tab") {
+        const focusable = modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable || focusable.length === 0) return;
+        const first = focusable[0] as HTMLElement;
+        const last = focusable[focusable.length - 1] as HTMLElement;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      ref={modalRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Modal"
+      tabIndex={-1}
+    >
+      {children}
+      <button onClick={onClose}>Fechar</button>
+    </div>
+  );
+}
+```
+
+## Contraste e Cores
+
+```css
+/* ✅ Contraste suficiente */
+.text-body {
+  color: #1a1a1a; /* text no fundo branco: contraste ~13:1 */
+}
+
+/* ❌ Contraste insuficiente */
+.text-light {
+  color: #999999; /* no fundo branco: contraste ~2.7:1 */
+}
+```
+
+**Ferramentas para verificar contraste:**
+- WebAIM Contrast Checker
+- Chrome DevTools → Rendering → Emulate CSS media type `prefers-contrast: more`
+- axe DevTools
+
+### Suporte a `prefers-reduced-motion`
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+```
+
+### Suporte a `prefers-color-scheme`
+
+```css
+:root {
+  --bg: #ffffff;
+  --text: #1a1a1a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a;
+    --text: #f1f5f9;
+  }
+}
+```
+
+## Testando Acessibilidade
+
+| Ferramenta | Tipo | Como usar |
+|-----------|------|-----------|
+| **axe DevTools** | Extensão Chrome | Inspecionar → axe |
+| **Lighthouse** | Auditoria automatizada | Aba Lighthouse no DevTools |
+| **WAVE** | Extensão/Web | wave.webaim.org |
+| **NVDA / VoiceOver** | Leitor de tela | Navegar como usuário cego |
+| **Tab key only** | Teste manual | Navegar só com Tab |
+
+## Checklist de Acessibilidade
+
+```markdown
+- [ ] HTML semântico (nav, main, button, label)
+- [ ] Skip link visível no foco
+- [ ] Títulos em ordem hierárquica (h1 → h2 → h3)
+- [ ] Imagens com alt descritivo
+- [ ] Formulários com label (não só placeholder)
+- [ ] Contraste mínimo 4.5:1
+- [ ] Navegável apenas com teclado
+- [ ] `prefers-reduced-motion` respeitado
+- [ ] Leitor de tela consegue navegar
+- [ ] ARIA usado só quando necessário
+```
+
+## Conclusão
+
+Acessibilidade não é feature ou checklist — é parte fundamental do desenvolvimento. Comece com HTML semântico, contraste adequado e navegação por teclado. O resto você adiciona conforme aprende e testa com usuários reais.

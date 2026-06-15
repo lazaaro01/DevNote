@@ -62,6 +62,21 @@ export default function ArticleToolbar() {
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const prevLayout = useRef<LayoutOption>("default");
 
+  const applyOverrides = useCallback((p: Prefs) => {
+    const root = document.getElementById("article-root");
+    if (!root) return;
+    root.setAttribute("data-layout-override", p.layout);
+    root.setAttribute("data-theme-override", p.theme);
+    root.setAttribute("data-font-size", p.fontSize);
+    if (p.contrast) {
+      root.setAttribute("data-high-contrast", "");
+      document.body.classList.add("high-contrast");
+    } else {
+      root.removeAttribute("data-high-contrast");
+      document.body.classList.remove("high-contrast");
+    }
+  }, []);
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -75,21 +90,6 @@ export default function ArticleToolbar() {
       }
     } catch {
       /* ignore */
-    }
-  }, []);
-
-  const applyOverrides = useCallback((p: Prefs) => {
-    const root = document.getElementById("article-root");
-    if (!root) return;
-    root.setAttribute("data-layout-override", p.layout);
-    root.setAttribute("data-theme-override", p.theme);
-    root.setAttribute("data-font-size", p.fontSize);
-    if (p.contrast) {
-      root.setAttribute("data-high-contrast", "");
-      document.body.classList.add("high-contrast");
-    } else {
-      root.removeAttribute("data-high-contrast");
-      document.body.classList.remove("high-contrast");
     }
   }, []);
 
