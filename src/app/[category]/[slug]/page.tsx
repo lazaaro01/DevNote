@@ -9,6 +9,7 @@ import TagLink from "@/components/TagLink";
 import LayoutSwitcher from "@/components/layouts/LayoutSwitcher";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
 import ArticleToolbar from "@/components/ArticleToolbar";
+import Lightbox from "@/components/Lightbox";
 import {
   getContent,
   getRelatedContent,
@@ -172,6 +173,7 @@ export default async function ContentPage({
         )}
       </LayoutSwitcher>
       <ArticleToolbar />
+      <Lightbox />
     </div>
   );
 }
