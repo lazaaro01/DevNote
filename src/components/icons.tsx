@@ -64,10 +64,16 @@ export const IconCareer = createIcon(
   </>
 );
 
-export const IconAlgorithms = createIcon(
+export const IconCloud = createIcon(
   <>
-    <path d="M5 19V5h6v14M19 5v14h-6V5" />
-    <path d="M5 10h6M13 14h6" />
+    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+  </>
+);
+
+export const IconMensageria = createIcon(
+  <>
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    <path d="M8 9h8M8 13h6" />
   </>
 );
 
@@ -120,7 +126,8 @@ export const icons: Record<string, React.ComponentType<Props>> = {
   devops: IconDevops,
   architecture: IconArchitecture,
   career: IconCareer,
-  algorithms: IconAlgorithms,
+  cloud: IconCloud,
+  mensageria: IconMensageria,
   "system-design": IconSystemDesign,
   "design-patterns": IconDesignPatterns,
   solid: IconSolid,

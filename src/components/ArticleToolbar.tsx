@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 
 type LayoutOption = "default" | "full-width" | "reading" | "presentation";
+type FontSizeOption = "sm" | "md" | "lg" | "xl";
 type ThemeOption =
   | ""
   | "violet"
@@ -20,16 +21,25 @@ type ThemeOption =
 interface Prefs {
   layout: LayoutOption;
   theme: ThemeOption;
+  fontSize: FontSizeOption;
+  contrast: boolean;
 }
 
 const STORAGE_KEY = "devvault-article-prefs";
-const DEFAULT_PREFS: Prefs = { layout: "default", theme: "" };
+const DEFAULT_PREFS: Prefs = { layout: "default", theme: "", fontSize: "md", contrast: false };
 
 const layouts: { value: LayoutOption; label: string; icon: string }[] = [
   { value: "default", label: "Padrão", icon: "📄" },
   { value: "full-width", label: "Largo", icon: "📐" },
   { value: "reading", label: "Leitura", icon: "📖" },
   { value: "presentation", label: "Apresentação", icon: "🎬" },
+];
+
+const fontSizes: { value: FontSizeOption; label: string }[] = [
+  { value: "sm", label: "S" },
+  { value: "md", label: "M" },
+  { value: "lg", label: "L" },
+  { value: "xl", label: "XL" },
 ];
 
 const themes: { value: ThemeOption; color: string; label: string }[] = [
@@ -73,6 +83,14 @@ export default function ArticleToolbar() {
     if (!root) return;
     root.setAttribute("data-layout-override", p.layout);
     root.setAttribute("data-theme-override", p.theme);
+    root.setAttribute("data-font-size", p.fontSize);
+    if (p.contrast) {
+      root.setAttribute("data-high-contrast", "");
+      document.body.classList.add("high-contrast");
+    } else {
+      root.removeAttribute("data-high-contrast");
+      document.body.classList.remove("high-contrast");
+    }
   }, []);
 
   const handleLayout = (layout: LayoutOption) => {
@@ -88,6 +106,18 @@ export default function ArticleToolbar() {
     saveAndApply(next);
   };
 
+  const handleFontSize = (fontSize: FontSizeOption) => {
+    const next = { ...prefs, fontSize };
+    setPrefs(next);
+    saveAndApply(next);
+  };
+
+  const handleContrast = () => {
+    const next = { ...prefs, contrast: !prefs.contrast };
+    setPrefs(next);
+    saveAndApply(next);
+  };
+
   const handleReset = () => {
     const next = { ...DEFAULT_PREFS };
     setPrefs(next);
@@ -95,6 +125,9 @@ export default function ArticleToolbar() {
     if (root) {
       root.removeAttribute("data-layout-override");
       root.removeAttribute("data-theme-override");
+      root.removeAttribute("data-font-size");
+      root.removeAttribute("data-high-contrast");
+      document.body.classList.remove("high-contrast");
     }
     localStorage.removeItem(STORAGE_KEY);
   };
@@ -114,10 +147,11 @@ export default function ArticleToolbar() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "p" || e.key === "P") {
-        if (!e.ctrlKey && !e.metaKey) {
-          handleTogglePresentation();
-        }
+      if ((e.key === "p" || e.key === "P") && !e.ctrlKey && !e.metaKey) {
+        handleTogglePresentation();
+      }
+      if ((e.key === "c" || e.key === "C") && !e.ctrlKey && !e.metaKey) {
+        handleContrast();
       }
       if (e.key === "Escape" && open) {
         setOpen(false);
@@ -125,7 +159,7 @@ export default function ArticleToolbar() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [open, prefs.layout]);
+  }, [open, prefs.layout, prefs.contrast]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 print-hidden">
@@ -138,7 +172,7 @@ export default function ArticleToolbar() {
 
       <div className="relative z-50">
         {open && (
-          <div className="absolute bottom-16 right-0 w-72 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-4 animate-scale-in">
+          <div className="absolute bottom-16 right-0 w-80 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-4 animate-scale-in">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold text-text">
                 Personalizar
@@ -171,6 +205,47 @@ export default function ArticleToolbar() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-2">
+                Tamanho da Fonte
+              </p>
+              <div className="flex gap-1.5">
+                {fontSizes.map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => handleFontSize(f.value)}
+                    className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                      prefs.fontSize === f.value
+                        ? "bg-slate-700 text-text ring-1 ring-slate-500"
+                        : "bg-slate-800 text-text-secondary hover:bg-slate-700"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <button
+                  onClick={handleContrast}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${
+                    prefs.contrast ? "bg-amber-500" : "bg-slate-700"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                      prefs.contrast ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+                <span className="text-xs font-medium text-text-secondary uppercase tracking-wider">
+                  Alto Contraste
+                </span>
+              </label>
             </div>
 
             <div>

@@ -26,7 +26,7 @@ export default function Sidebar() {
 
       <div className="px-3 py-4 border-t border-white/10">
         <a
-          href="https://github.com"
+          href="https://github.com/lazaaro01/DevNote"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/5 transition-all duration-200"

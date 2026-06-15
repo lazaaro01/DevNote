@@ -1,0 +1,170 @@
+---
+title: "AWS ECS: Orquestração de Containers Gerenciada"
+description: "Explore o Amazon ECS, o serviço de orquestração de containers da AWS, modos de execução (Fargate vs EC2), tarefas e serviços."
+category: "Cloud"
+tags:
+  - AWS
+  - ECS
+  - Containers
+  - Docker
+  - Cloud
+featured: false
+publishedAt: "2026-06-14"
+---
+
+## O que é o Amazon ECS?
+
+Amazon Elastic Container Service (ECS) é um serviço de orquestração de containers totalmente gerenciado. Você define tarefas com containers Docker e o ECS cuida da execução, escalabilidade e saúde.
+
+## Modos de Execução
+
+### Fargate (Serverless)
+
+Você não gerencia servidores — apenas define CPU e memória.
+
+```json
+{
+  "family": "minha-app",
+  "networkMode": "awsvpc",
+  "executionRoleArn": "arn:aws:iam::123456:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "nginx:alpine",
+      "cpu": 256,
+      "memory": 512,
+      "portMappings": [
+        { "containerPort": 80, "protocol": "tcp" }
+      ]
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512"
+}
+```
+
+### EC2 (Controle sobre o host)
+
+Você gerencia as instâncias EC2 do cluster — ideal para cargas previsíveis.
+
+```java
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.*;
+
+EcsClient ecs = EcsClient.create();
+
+// Registrar definição de tarefa
+RegisterTaskDefinitionResponse task = ecs.registerTaskDefinition(
+    RegisterTaskDefinitionRequest.builder()
+        .family("app-task")
+        .networkMode(NetworkMode.AWSVPC)
+        .requiresCompatibilities(Compatibility.EC2)
+        .containerDefinitions(ContainerDefinition.builder()
+            .name("app")
+            .image("nginx:alpine")
+            .memory(256)
+            .portMappings(PortMapping.builder()
+                .containerPort(80)
+                .hostPort(80)
+                .build())
+            .build())
+        .build());
+
+// Criar serviço
+ecs.createService(CreateServiceRequest.builder()
+    .serviceName("app-service")
+    .taskDefinition("app-task:1")
+    .desiredCount(3)
+    .launchType(LaunchType.FARGATE)
+    .networkConfiguration(NetworkConfiguration.builder()
+        .awsvpcConfiguration(AwsVpcConfiguration.builder()
+            .subnets("subnet-12345678")
+            .securityGroups("sg-12345678")
+            .assignPublicIp(AssignPublicIp.ENABLED)
+            .build())
+        .build())
+    .build());
+```
+
+## Conceitos Fundamentais
+
+| Componente | Descrição |
+|------------|-----------|
+| **Cluster** | Conjunto lógico de recursos computacionais |
+| **Task Definition** | Blueprint do container (imagem, portas, variáveis) |
+| **Task** | Instância única de uma tarefa em execução |
+| **Service** | Garante que N tarefas estejam sempre rodando |
+| **Scheduler** | Distribui tarefas nos recursos disponíveis |
+
+## CI/CD com ECS
+
+Pipeline típico:
+
+1. Build da imagem Docker
+2. Push para Amazon ECR (registro de containers)
+3. Atualizar a task definition com a nova imagem
+4. Implantar no serviço ECS
+
+```bash
+# Autenticar no ECR
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin 123456.dkr.ecr.us-east-1.amazonaws.com
+
+# Build e push
+docker build -t minha-app .
+docker tag minha-app:latest 123456.dkr.ecr.us-east-1.amazonaws.com/minha-app:latest
+docker push 123456.dkr.ecr.us-east-1.amazonaws.com/minha-app:latest
+
+# Atualizar serviço
+aws ecs update-service \
+  --cluster meu-cluster \
+  --service app-service \
+  --force-new-deployment
+```
+
+## Service Auto Scaling
+
+```java
+ApplicationAutoScalingClient appScaling = ApplicationAutoScalingClient.create();
+
+// Registrar destino escalável
+appScaling.registerScalableTarget(RegisterScalableTargetRequest.builder()
+    .serviceNamespace("ecs")
+    .resourceId("service/meu-cluster/app-service")
+    .scalableDimension("ecs:service:DesiredCount")
+    .minCapacity(2)
+    .maxCapacity(10)
+    .build());
+
+// Política de scaling baseada em CPU
+appScaling.putScalingPolicy(PutScalingPolicyRequest.builder()
+    .policyName("cpu-scaling")
+    .serviceNamespace("ecs")
+    .resourceId("service/meu-cluster/app-service")
+    .scalableDimension("ecs:service:DesiredCount")
+    .policyType("TargetTrackingScaling")
+    .targetTrackingScalingPolicyConfiguration(
+        TargetTrackingScalingPolicyConfiguration.builder()
+            .targetValue(70.0)
+            .predefinedMetricSpecification(PredefinedMetricSpecification.builder()
+                .predefinedMetricType("ECSServiceAverageCPUUtilization")
+                .build())
+            .scaleOutCooldown(60)
+            .scaleInCooldown(60)
+            .build())
+    .build());
+```
+
+## ECS vs EKS
+
+| Característica | ECS | EKS (Kubernetes) |
+|----------------|-----|------------------|
+| Complexidade | Baixa | Alta |
+| Integração AWS | Nativa | Via plugins |
+| Portabilidade | AWS-only | Multi-cloud |
+| Ecossistema | Simples | Extenso (Helm, Istio) |
+
+## Conclusão
+
+O ECS é a opção mais simples para rodar containers na AWS. Com Fargate, você elimina a gestão de servidores completamente — ideal para times que querem focar na aplicação, não na infraestrutura.

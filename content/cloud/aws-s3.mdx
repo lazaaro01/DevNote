@@ -1,0 +1,103 @@
+---
+title: "AWS S3: Armazenamento de Objetos na Nuvem"
+description: "Conheça o Amazon S3, o serviço de armazenamento de objetos da AWS, seus casos de uso, classes de armazenamento e melhores práticas."
+category: "Cloud"
+tags:
+  - AWS
+  - S3
+  - Armazenamento
+  - Cloud
+featured: false
+publishedAt: "2026-06-14"
+---
+
+## O que é o Amazon S3?
+
+Amazon Simple Storage Service (S3) é um serviço de armazenamento de objetos escalável, seguro e de alta disponibilidade. Você pode armazenar e recuperar qualquer quantidade de dados de qualquer lugar.
+
+## Conceitos Principais
+
+- **Bucket:** Contêiner para armazenar objetos (nome único globalmente)
+- **Objeto:** Arquivo + metadados armazenado no bucket
+- **Chave (Key):** Identificador único do objeto dentro do bucket
+
+```java
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
+
+S3Client s3 = S3Client.create();
+
+// Criar bucket
+s3.createBucket(CreateBucketRequest.builder()
+    .bucket("meu-bucket-dev")
+    .build());
+
+// Upload de objeto
+s3.putObject(PutObjectRequest.builder()
+    .bucket("meu-bucket-dev")
+    .key("fotos/avatar.png")
+    .build(), Path.of("avatar.png"));
+
+// Download
+s3.getObject(GetObjectRequest.builder()
+    .bucket("meu-bucket-dev")
+    .key("fotos/avatar.png")
+    .build(), Path.of("download.png"));
+```
+
+## Classes de Armazenamento
+
+| Classe | Durabilidade | Disponibilidade | Caso de Uso |
+|--------|-------------|----------------|-------------|
+| S3 Standard | 99.9999999999% | 99.99% | Dados de acesso frequente |
+| S3 Intelligent-Tiering | 99.9999999999% | 99.9% | Padrões de acesso imprevisíveis |
+| S3 Standard-IA | 99.9999999999% | 99.9% | Acesso infrequente |
+| S3 One Zone-IA | 99.9999999999% | 99.5% | Dados recriáveis |
+| S3 Glacier | 99.9999999999% | 99.99% | Arquivamento (minutos a horas) |
+| S3 Glacier Deep Archive | 99.9999999999% | 99.99% | Arquivamento de longo prazo |
+
+## Versionamento e Ciclo de Vida
+
+```java
+// Habilitar versionamento
+s3.putBucketVersioning(PutBucketVersioningRequest.builder()
+    .bucket("meu-bucket-dev")
+    .versioningConfig(VersioningConfiguration.builder()
+        .status(BucketVersioningStatus.ENABLED)
+        .build())
+    .build());
+
+// Regra de ciclo de vida (transição para Glacier após 30 dias)
+s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder()
+    .bucket("meu-bucket-dev")
+    .lifecycleConfiguration(BucketLifecycleConfiguration.builder()
+        .rules(LifecycleRule.builder()
+            .id("transitar-para-glacier")
+            .status(ExpirationStatus.ENABLED)
+            .transitions(Transition.builder()
+                .days(30)
+                .storageClass(TransitionStorageClass.GLACIER)
+                .build())
+            .build())
+        .build())
+    .build());
+```
+
+## Segurança
+
+- **IAM Policies:** Controle de acesso granular
+- **Bucket Policies:** Regras específicas do bucket
+- **Server-Side Encryption:** Criptografia automática (SSE-S3, SSE-KMS, SSE-C)
+- **Block Public Access:** Bloqueio global de acesso público
+
+## Casos de Uso Comuns
+
+- Hospedagem de arquivos estáticos (imagens, vídeos, CSS)
+- Backup e restore
+- Data Lake para análises
+- Logs de aplicações
+- Distribuição de conteúdo via CloudFront
+
+## Conclusão
+
+O S3 é a espinha dorsal do armazenamento na AWS. Sua escalabilidade, durabilidade e ecossistema de integrações o tornam essencial para qualquer arquitetura cloud.

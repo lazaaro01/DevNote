@@ -1,0 +1,125 @@
+---
+title: "AWS RDS: Bancos de Dados Gerenciados na Nuvem"
+description: "Conheça o Amazon RDS, bancos de dados relacionais gerenciados na AWS, com suporte a MySQL, PostgreSQL, MariaDB, SQL Server e Oracle."
+category: "Cloud"
+tags:
+  - AWS
+  - RDS
+  - Banco de Dados
+  - SQL
+  - Cloud
+featured: false
+publishedAt: "2026-06-14"
+---
+
+## O que é o Amazon RDS?
+
+Amazon Relational Database Service (RDS) facilita a configuração, operação e escalabilidade de bancos de dados relacionais na nuvem. Ele automatiza tarefas administrativas como backup, patching e replicação.
+
+## Motores Suportados
+
+| Motor | Caso de Uso |
+|-------|------------|
+| **Amazon Aurora** | Compatível com MySQL/PostgreSQL, 5x mais performance |
+| **PostgreSQL** | Banco relacional avançado, extensível |
+| **MySQL** | Popular, ampla comunidade |
+| **MariaDB** | Fork do MySQL, mais rápido em alguns cenários |
+| **SQL Server** | Ecossistema Microsoft, .NET |
+| **Oracle** | Aplicações corporativas legadas |
+
+## Provisionando uma Instância
+
+```java
+import software.amazon.awssdk.services.rds.RdsClient;
+import software.amazon.awssdk.services.rds.model.*;
+
+RdsClient rds = RdsClient.create();
+
+// Criar instância RDS PostgreSQL
+CreateDbInstanceResponse response = rds.createDBInstance(CreateDbInstanceRequest.builder()
+    .dbInstanceIdentifier("meu-postgres")
+    .dbInstanceClass("db.t3.medium")
+    .engine("postgres")
+    .engineVersion("16.3")
+    .masterUsername("admin")
+    .masterUserPassword("SenhaSegura123!")
+    .allocatedStorage(100)
+    .storageType("gp3")
+    .vpcSecurityGroupIds("sg-12345678")
+    .dbSubnetGroupName("meu-subnet-group")
+    .multiAz(true)
+    .backupRetentionPeriod(30)
+    .preferredBackupWindow("03:00-04:00")
+    .build());
+
+String endpoint = response.dbInstance().endpoint().address();
+System.out.println("Endpoint: " + endpoint);
+```
+
+## Read Replicas
+
+Distribui leituras para reduzir carga na instância principal:
+
+```java
+// Criar réplica de leitura
+rds.createDbInstanceReadReplica(CreateDbInstanceReadReplicaRequest.builder()
+    .dbInstanceIdentifier("meu-postgres-replica")
+    .sourceDbInstanceIdentifier("meu-postgres")
+    .dbInstanceClass("db.t3.medium")
+    .multiAz(false)
+    .build());
+```
+
+## Backup e Restore
+
+### Snapshots Automáticos
+
+- Retenção configurável (0 a 35 dias)
+- Point-in-Time Recovery (PITR) com precisão de segundos
+- Período de backup automático configurável
+
+```java
+// Restaurar para um ponto específico no tempo
+rds.restoreDbInstanceToPointInTime(RestoreDbInstanceToPointInTimeRequest.builder()
+    .sourceDbInstanceIdentifier("meu-postgres")
+    .targetDbInstanceIdentifier("meu-postgres-restaurado")
+    .restoreTime(Instant.parse("2025-06-13T14:00:00Z"))
+    .build());
+```
+
+## Multi-AZ vs Read Replica
+
+| Funcionalidade | Multi-AZ | Read Replica |
+|----------------|----------|-------------|
+| Propósito | Alta disponibilidade | Escalar leituras |
+| Número de instâncias | 1 standby | Até 15 |
+| Failover automático | Sim | Promoção manual |
+| Leituras no standby | Não | Sim |
+| Latência de replicação | Síncrona | Assíncrona |
+
+## Monitoramento
+
+- **CloudWatch Metrics:** CPU, conexões, IOPS, latência
+- **Enhanced Monitoring:** Métricas a nível de SO (50+ métricas)
+- **Performance Insights:** Dashboard com queries lentas e carga por SQL
+
+```java
+// Habilitar Performance Insights
+rds.modifyDbInstance(ModifyDbInstanceRequest.builder()
+    .dbInstanceIdentifier("meu-postgres")
+    .enablePerformanceInsights(true)
+    .performanceInsightsRetentionPeriod(PerformanceInsightsRetentionPeriod.SEVEN_DAYS)
+    .build());
+```
+
+## Boas Práticas
+
+- **Usar Secret Manager** para credenciais — nunca hardcode senhas
+- **Habilitar deletion protection** — evita exclusão acidental
+- **Manter backups** com retenção adequada ao RPO
+- **Utilizar parameter groups** para otimizações (ex: `shared_buffers`)
+- **Aplicar patches** durante janelas de manutenção programadas
+
+## Conclusão
+
+O RDS elimina o trabalho pesado da administração de bancos de dados. Com Multi-AZ, read replicas e backups automáticos, você ganha resiliência sem complexidade operacional.

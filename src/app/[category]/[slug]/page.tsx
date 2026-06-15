@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import MDXContent from "@/components/MDXContent";
 import ContentCard from "@/components/ContentCard";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -23,13 +24,41 @@ const catBadge: Record<string, { text: string; bg: string; border: string }> = {
   devops: { text: "text-cyan-300", bg: "bg-cyan-950", border: "border-cyan-700" },
   architecture: { text: "text-amber-300", bg: "bg-amber-950", border: "border-amber-700" },
   career: { text: "text-emerald-300", bg: "bg-emerald-950", border: "border-emerald-700" },
-  algorithms: { text: "text-red-300", bg: "bg-red-950", border: "border-red-700" },
+  cloud: { text: "text-sky-300", bg: "bg-sky-950", border: "border-sky-700" },
+  mensageria: { text: "text-teal-300", bg: "bg-teal-950", border: "border-teal-700" },
   "system-design": { text: "text-violet-300", bg: "bg-violet-950", border: "border-violet-700" },
   "design-patterns": { text: "text-fuchsia-300", bg: "bg-fuchsia-950", border: "border-fuchsia-700" },
   solid: { text: "text-emerald-300", bg: "bg-emerald-950", border: "border-emerald-700" },
   resiliencia: { text: "text-indigo-300", bg: "bg-indigo-950", border: "border-indigo-700" },
   okrs: { text: "text-rose-300", bg: "bg-rose-950", border: "border-rose-700" },
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string; slug: string }>;
+}): Promise<Metadata> {
+  const { category, slug } = await params;
+  const content = getContent(category, slug);
+  if (!content) return {};
+
+  const ogUrl = `/api/og?title=${encodeURIComponent(content.title)}&category=${encodeURIComponent(content.category)}&theme=${content.theme ?? ""}`;
+
+  return {
+    openGraph: {
+      title: content.title,
+      description: content.description,
+      url: `/${category}/${slug}`,
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: content.title,
+      description: content.description,
+      images: [ogUrl],
+    },
+  };
+}
 
 const tagColors = [
   { text: "text-blue-300", bg: "bg-blue-950" },

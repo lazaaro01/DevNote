@@ -7,6 +7,7 @@ const shortcuts = [
   { key: "/", desc: "Focar na busca" },
   { key: "?", desc: "Abrir atalhos" },
   { key: "P", desc: "Alternar modo apresentação" },
+  { key: "C", desc: "Alternar alto contraste" },
   { key: "ESC", desc: "Fechar modal / limpar busca" },
 ] as const;
 

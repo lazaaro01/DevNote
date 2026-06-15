@@ -1,0 +1,95 @@
+---
+title: "Docker Swarm: Orquestração de Containers na Prática"
+description: "Aprenda a configurar e gerenciar um cluster Docker Swarm para orquestração de serviços em produção."
+category: "DevOps"
+tags:
+  - Docker
+  - Swarm
+  - Orquestração
+  - Containers
+  - DevOps
+featured: false
+publishedAt: "2026-06-14"
+---
+
+## O que é Docker Swarm?
+
+Docker Swarm é a ferramenta nativa de orquestração de containers do Docker. Permite agrupar múltiplos hosts Docker em um cluster único, gerenciando serviços de forma distribuída com alta disponibilidade.
+
+## Conceitos Principais
+
+| Termo | Descrição |
+|-------|-----------|
+| **Manager Node** | Gerencia o cluster, mantém o estado e agenda serviços |
+| **Worker Node** | Executa os containers agendados pelos managers |
+| **Service** | Definição de um container que será executado no cluster |
+| **Task** | Uma instância de um serviço rodando em um nó |
+| **Stack** | Grupo de serviços definidos em um arquivo YAML |
+
+## Inicializando um Cluster
+
+```bash
+# Inicializar o swarm no nó manager
+docker swarm init --advertise-addr 192.168.1.10
+
+# Adicionar nós workers
+docker swarm join --token SWMTKN-1-xxxx 192.168.1.10:2377
+```
+
+## Criando Serviços
+
+```bash
+# Criar um serviço com 3 réplicas
+docker service create \
+  --name web-app \
+  --replicas 3 \
+  --publish 80:3000 \
+  myapp:latest
+
+# Listar serviços
+docker service ls
+
+# Escalar um serviço
+docker service scale web-app=5
+```
+
+## Modos de Rede
+
+O Swarm oferece dois tipos de rede:
+
+- **Overlay:** Comunicação entre serviços em diferentes nós (default)
+- **Ingress:** Balanceamento de carga externo para serviços publicados
+
+## Rolling Updates
+
+```yaml
+# docker-compose.yml para Swarm
+version: '3.8'
+
+services:
+  app:
+    image: myapp:latest
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "80:3000"
+```
+
+## Comandos Essenciais
+
+| Comando | Descrição |
+|---------|-----------|
+| `docker node ls` | Lista nós do cluster |
+| `docker service ps web-app` | Detalha tarefas de um serviço |
+| `docker stack deploy -c stack.yml app` | Deploy de stack |
+| `docker service logs web-app` | Logs do serviço |
+
+## Conclusão
+
+Docker Swarm é uma solução simples e nativa para orquestração, ideal para equipes que já utilizam Docker e precisam de alta disponibilidade sem a complexidade do Kubernetes.

@@ -1,0 +1,133 @@
+---
+title: "AWS EC2: Servidores Virtuais na Nuvem"
+description: "Aprenda sobre o Amazon EC2, o serviço de servidores virtuais da AWS, tipos de instância, security groups, e como gerenciar sua infraestrutura."
+category: "Cloud"
+tags:
+  - AWS
+  - EC2
+  - Servidores
+  - Cloud
+featured: false
+publishedAt: "2026-06-14"
+---
+
+## O que é o Amazon EC2?
+
+Amazon Elastic Compute Cloud (EC2) fornece capacidade computacional segura e redimensionável na nuvem. Você pode provisionar servidores virtuais (instâncias) em minutos, pagando apenas pelo que usar.
+
+## Tipos de Instância
+
+| Família | Caso de Uso | Exemplos |
+|---------|-------------|----------|
+| **T** (Burstable) | Uso geral, baixa carga | t3.micro, t3.medium |
+| **M** (General) | Aplicações web, microsserviços | m6i.large, m7g.xlarge |
+| **C** (Compute) | Processamento intensivo | c6i.2xlarge, c7g.4xlarge |
+| **R** (Memory) | Bancos em memória, caches | r6i.large, r7g.xlarge |
+| **G/P** (GPU) | ML, renderização | g4dn.xlarge, p4d.24xlarge |
+| **I** (Storage) | Bancos com alto IOPS | i3.large, i4i.xlarge |
+
+## Provisionando uma Instância
+
+```java
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.*;
+
+Ec2Client ec2 = Ec2Client.create();
+
+// Criar um par de chaves
+ec2.createKeyPair(CreateKeyPairRequest.builder()
+    .keyName("minha-chave")
+    .build());
+
+// Executar instância
+RunInstancesResponse response = ec2.runInstances(RunInstancesRequest.builder()
+    .imageId("ami-0c55b159cbfafe1f0")
+    .instanceType(InstanceType.T3_MICRO)
+    .keyName("minha-chave")
+    .securityGroupIds("sg-12345678")
+    .subnetId("subnet-12345678")
+    .maxCount(1)
+    .minCount(1)
+    .build());
+
+String instanceId = response.instances().get(0).instanceId();
+System.out.println("Instância criada: " + instanceId);
+```
+
+## Security Groups
+
+Atuam como firewall virtual. Regras de entrada e saída por protocolo, porta e origem.
+
+```java
+// Criar security group
+CreateSecurityGroupResponse sgResponse = ec2.createSecurityGroup(
+    CreateSecurityGroupRequest.builder()
+        .groupName("web-sg")
+        .description("Acesso HTTP e SSH")
+        .vpcId("vpc-12345678")
+        .build());
+
+String sgId = sgResponse.groupId();
+
+// Liberar HTTP (porta 80)
+ec2.authorizeSecurityGroupIngress(AuthorizeSecurityGroupIngressRequest.builder()
+    .groupId(sgId)
+    .ipPermissions(IpPermission.builder()
+        .ipProtocol("tcp")
+        .fromPort(80)
+        .toPort(80)
+        .ipRanges(IpRange.builder()
+            .cidrIp("0.0.0.0/0")
+            .build())
+        .build())
+    .build());
+```
+
+## User Data
+
+Script executado na inicialização da instância:
+
+```bash
+#!/bin/bash
+apt-get update
+apt-get install -y nginx
+systemctl enable nginx
+systemctl start nginx
+echo "<h1>Servidor pronto!</h1>" > /var/www/html/index.html
+```
+
+## Auto Scaling e Load Balancing
+
+- **Launch Template:** Configuração base para novas instâncias
+- **Auto Scaling Group:** Mantém número mínimo/máximo de instâncias
+- **Application Load Balancer:** Distribui tráfego entre instâncias saudáveis
+
+```java
+// Criar Auto Scaling Group
+AutoScalingClient asg = AutoScalingClient.create();
+
+asg.createAutoScalingGroup(CreateAutoScalingGroupRequest.builder()
+    .autoScalingGroupName("web-asg")
+    .launchTemplate(LaunchTemplateSpecification.builder()
+        .launchTemplateName("web-template")
+        .version("$Default")
+        .build())
+    .minSize(2)
+    .maxSize(10)
+    .desiredCapacity(2)
+    .vpcZoneIdentifier("subnet-1,subnet-2")
+    .build());
+```
+
+## Modelos de Precificação
+
+| Modelo | Descrição | Economia |
+|--------|-----------|----------|
+| On-Demand | Pago por hora/segundo | - |
+| Reserved (1 ou 3 anos) | Reserva antecipada | até 40% |
+| Spot | Capacidade ociosa | até 90% |
+| Savings Plan | Compromisso de uso ($/hora) | até 66% |
+
+## Conclusão
+
+O EC2 oferece flexibilidade total para rodar qualquer carga de trabalho na nuvem. Combinado com Auto Scaling e Load Balancers, você constrói infraestrutura resiliente e elástica.
