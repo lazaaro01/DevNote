@@ -10,7 +10,7 @@ export default async function SearchPage({
   const { q } = await searchParams;
 
   return (
-    <div className="max-w-4xl mx-auto px-8 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       <div className="animate-fade-in-up stagger-1">
         <SearchBar initialValue={q ?? ""} />
       </div>

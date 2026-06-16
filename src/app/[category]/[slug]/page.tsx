@@ -135,7 +135,7 @@ export default async function ContentPage({
               <PrintButton />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-text tracking-tight mb-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-text tracking-tight mb-3">
             {content.title}
           </h1>
           <p className="text-text-secondary leading-relaxed">

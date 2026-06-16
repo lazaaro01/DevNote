@@ -433,7 +433,11 @@ body:has(#article-root[data-layout-override="presentation"]) .aurora-bg {
   opacity: 0.25;
 }
 
-body:has(#article-root[data-layout-override="presentation"]) .sidebar {
+body:has(#article-root[data-layout-override="presentation"]) .sidebar-desktop {
+  display: none;
+}
+
+body:has(#article-root[data-layout-override="presentation"]) .mobile-menu-toggle {
   display: none;
 }
 
@@ -577,7 +581,7 @@ body.high-contrast {
   --color-text-secondary: #ffffff;
 }
 body.high-contrast .aurora-bg { display: none; }
-body.high-contrast .sidebar {
+body.high-contrast .sidebar-desktop {
   background: #000000 !important;
   border-right: 1px solid #444;
 }
@@ -621,6 +625,78 @@ body.high-contrast .sidebar {
 }
 .prose svg {
   overflow: visible;
+}
+
+@media (max-width: 767px) {
+  .aurora-bg {
+    animation: none;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(138,43,226,0.5) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, rgba(0,191,255,0.4) 0%, transparent 70%),
+      linear-gradient(135deg, #000000 0%, #0a0520 100%);
+  }
+  .aurora-bg::before,
+  .aurora-bg::after {
+    animation: none;
+  }
+
+  .prose h1 {
+    font-size: 1.5rem;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .prose h2 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .prose h3 {
+    font-size: 1.1rem;
+    margin-top: 1.25rem;
+  }
+  .prose p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  .prose li {
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+  .prose pre {
+    padding: 0.85rem;
+    font-size: 0.8rem;
+    margin: 1rem 0;
+  }
+  .prose code {
+    font-size: 0.8rem;
+  }
+  .prose p code {
+    font-size: 0.8rem;
+  }
+  .prose table {
+    font-size: 0.8rem;
+  }
+  .prose th,
+  .prose td {
+    padding: 0.5rem 0.65rem;
+  }
+  .prose blockquote {
+    padding: 0.5rem 0.85rem;
+    margin: 1rem 0;
+  }
+  .prose img {
+    margin: 1rem 0;
+  }
+  .prose .mermaid-wrapper svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  #article-root[data-layout-override="presentation"] .prose h1 { font-size: 1.75rem; }
+  #article-root[data-layout-override="presentation"] .prose h2 { font-size: 1.375rem; }
+  #article-root[data-layout-override="presentation"] .prose h3 { font-size: 1.2rem; }
+  #article-root[data-layout-override="presentation"] .prose p { font-size: 1rem; }
+  #article-root[data-layout-override="presentation"] .prose li { font-size: 1rem; }
 }
 
 @media print {

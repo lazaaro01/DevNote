@@ -1,11 +1,11 @@
 export default function Hero() {
   return (
-    <section className="relative mb-14 overflow-hidden rounded-2xl bg-transparent p-8 md:p-10">
+    <section className="relative mb-10 sm:mb-14 overflow-hidden rounded-2xl bg-transparent p-5 sm:p-8 md:p-10">
       <div className="relative z-10">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-3 drop-shadow-sm">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-3 drop-shadow-sm">
           Biblioteca de Conhecimento Técnico
         </h1>
-        <p className="text-base md:text-lg text-white/85 max-w-2xl leading-relaxed">
+        <p className="text-sm sm:text-base md:text-lg text-white/85 max-w-2xl leading-relaxed">
           Anotações, estudos e documentações organizadas por categorias para
           consulta rápida. Explore conteúdos sobre desenvolvimento de software,
           arquitetura, banco de dados e muito mais.

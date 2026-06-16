@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import MobileMenu from "@/components/MobileMenu";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
+import { getCategories } from "@/lib/content";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +29,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories = getCategories();
+
   return (
     <html
       lang="pt-BR"
@@ -34,9 +38,12 @@ export default function RootLayout({
     >
       <body className="bg-bg text-text">
         <div className="aurora-bg" />
-        <Sidebar />
+        <div className="hidden md:block">
+          <Sidebar />
+        </div>
+        <MobileMenu categories={categories} />
         <KeyboardShortcuts />
-        <main className="ml-64 min-h-screen">{children}</main>
+        <main className="md:ml-64 min-h-screen">{children}</main>
       </body>
     </html>
   );

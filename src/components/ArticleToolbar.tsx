@@ -172,7 +172,7 @@ export default function ArticleToolbar() {
 
       <div className="relative z-50">
         {open && (
-          <div className="absolute bottom-16 right-0 w-80 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-4 animate-scale-in">
+          <div className="absolute bottom-16 right-0 w-[calc(100vw-2rem)] sm:w-80 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-4 animate-scale-in">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold text-text">
                 Personalizar

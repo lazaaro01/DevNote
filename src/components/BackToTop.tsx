@@ -21,7 +21,7 @@ export default function BackToTop() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="fixed bottom-20 right-6 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-white/80 shadow-lg hover:bg-slate-700 hover:scale-105 hover:text-white transition-all print-hidden"
+      className="fixed bottom-20 right-4 md:right-6 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-white/80 shadow-lg hover:bg-slate-700 hover:scale-105 hover:text-white transition-all print-hidden"
       title="Voltar ao topo"
       aria-label="Voltar ao topo"
     >
