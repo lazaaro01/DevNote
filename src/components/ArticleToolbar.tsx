@@ -59,7 +59,17 @@ const themes: { value: ThemeOption; color: string; label: string }[] = [
 
 export default function ArticleToolbar() {
   const [open, setOpen] = useState(false);
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  const [prefs, setPrefs] = useState<Prefs>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved) as Prefs;
+      }
+    } catch {
+      /* ignore */
+    }
+    return DEFAULT_PREFS;
+  });
   const prevLayout = useRef<LayoutOption>("default");
 
   const applyOverrides = useCallback((p: Prefs) => {
@@ -78,20 +88,11 @@ export default function ArticleToolbar() {
   }, []);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as Prefs;
-        setPrefs(parsed);
-        if (parsed.layout !== "presentation") {
-          prevLayout.current = parsed.layout;
-        }
-        applyOverrides(parsed);
-      }
-    } catch {
-      /* ignore */
+    applyOverrides(prefs);
+    if (prefs.layout !== "presentation") {
+      prevLayout.current = prefs.layout;
     }
-  }, []);
+  }, [prefs, applyOverrides]);
 
   const handleLayout = (layout: LayoutOption) => {
     if (layout !== "presentation") prevLayout.current = layout;
