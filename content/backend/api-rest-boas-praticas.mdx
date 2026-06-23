@@ -1,0 +1,179 @@
+---
+title: "API REST: Boas Práticas para Design de APIs"
+description: "Guia de boas práticas para projetar APIs REST consistentes, incluindo versionamento, status codes, paginação, filtros e estrutura de respostas."
+category: "Backend"
+tags:
+  - REST
+  - API
+  - Spring Boot
+  - Java
+  - Boas Práticas
+featured: false
+publishedAt: "2026-06-24"
+---
+
+## Introdução
+
+Projetar uma API REST consistente é essencial para garantir que outros times e sistemas consigam consumi-la sem frustrações. Boas práticas de nomenclatura, versionamento, paginação e tratamento de erros transformam uma API funcional em uma API profissional.
+
+## Nomenclatura e Estrutura de Endpoints
+
+Use substantivos no plural para recursos e evite verbos na URL:
+
+```java
+@RestController
+@RequestMapping("/api/usuarios")
+public class UsuarioController {
+
+    @GetMapping
+    public ResponseEntity<List<Usuario>> listar() { ... }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> buscar(@PathVariable Long id) { ... }
+
+    @PostMapping
+    public ResponseEntity<Usuario> criar(@RequestBody Usuario usuario) { ... }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody Usuario usuario) { ... }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> remover(@PathVariable Long id) { ... }
+}
+```
+
+| Prática | Correto | Incorreto |
+|---------|---------|-----------|
+| Plural | `/api/usuarios` | `/api/usuario` |
+| Sem verbos | `GET /api/usuarios` | `GET /api/listarUsuarios` |
+| Aninhamento | `/api/usuarios/1/pedidos` | `/api/buscarPedidosDoUsuario/1` |
+| Consistência | Sempre minúsculas | `Usuarios` ou `UsuariosAPI` |
+
+## Versionamento
+
+APIs evoluem e versões precisam ser gerenciadas. Prefira versionamento por URL ou header:
+
+```java
+// Versão 1 — URL path
+@RequestMapping("/api/v1/usuarios")
+
+// Versão 2 — mesmo recurso, comportamento diferente
+@RequestMapping("/api/v2/usuarios")
+```
+
+Ou via header `Accept`:
+
+```java
+@RequestMapping(value = "/api/usuarios", produces = "application/vnd.devault.v1+json")
+```
+
+## Paginação e Filtros
+
+Nunca retorne listas sem paginação. Use parâmetros de query consistentes:
+
+```java
+@GetMapping
+public ResponseEntity<Page<Usuario>> listar(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(required = false) String nome,
+        @RequestParam(required = false) String email,
+        Pageable pageable) {
+
+    var filtro = new UsuarioFiltro(nome, email);
+    var resultado = service.listar(filtro, pageable);
+    return ResponseEntity.ok(resultado);
+}
+```
+
+Estrutura de resposta padronizada:
+
+```json
+{
+  "content": [ ... ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 150,
+  "totalPages": 8,
+  "first": true,
+  "last": false
+}
+```
+
+## Status Codes Consistentes
+
+Use o status HTTP correto para cada operação:
+
+| Operação | Status | Descrição |
+|----------|--------|-----------|
+| `GET` (lista) | `200 OK` | Lista retornada com sucesso |
+| `GET` (id) | `200 OK` / `404 Not Found` | Recurso encontrado ou não |
+| `POST` | `201 Created` | Recurso criado, body + `Location` header |
+| `PUT` | `200 OK` / `204 No Content` | Atualizado com ou sem body |
+| `DELETE` | `204 No Content` / `404 Not Found` | Removido ou inexistente |
+| Validação | `400 Bad Request` | Dados inválidos |
+| Não autorizado | `401 Unauthorized` | Credenciais ausentes/inválidas |
+| Proibido | `403 Forbidden` | Sem permissão |
+| Conflito | `409 Conflict` | Estado inconsistente |
+
+```java
+@PostMapping
+public ResponseEntity<Usuario> criar(@RequestBody @Valid Usuario usuario) {
+    var criado = service.salvar(usuario);
+    var uri = ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(criado.getId())
+            .toUri();
+    return ResponseEntity.created(uri).body(criado);
+}
+```
+
+## Estrutura de Erros Padronizada
+
+Use RFC 9457 (Problem Details) para erros:
+
+```java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<ProblemDetail> handleNotFound(RecursoNaoEncontradoException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problem.setTitle("Recurso não encontrado");
+        problem.setType(URI.create("https://devault.dev/errors/not-found"));
+        return ResponseEntity.status(404).body(problem);
+    }
+}
+```
+
+Resposta:
+
+```json
+{
+  "type": "https://devault.dev/errors/not-found",
+  "title": "Recurso não encontrado",
+  "status": 404,
+  "detail": "Usuário com ID 42 não encontrado",
+  "instance": "/api/usuarios/42"
+}
+```
+
+## HATEOAS (Hypermedia)
+
+O nível 3 de maturidade REST inclui links para navegação:
+
+```java
+@GetMapping("/{id}")
+public ResponseEntity<EntityModel<Usuario>> buscar(@PathVariable Long id) {
+    var usuario = service.buscar(id);
+    var model = EntityModel.of(usuario,
+            linkTo(methodOn(UsuarioController.class).buscar(id)).withSelfRel(),
+            linkTo(methodOn(UsuarioController.class).listar()).withRel("todos"),
+            linkTo(methodOn(UsuarioController.class).remover(id)).withRel("remover"));
+    return ResponseEntity.ok(model);
+}
+```
+
+## Conclusão
+
+Boas práticas de design de API não são opcionais — elas definem a experiência de quem consume seus endpoints. Nomenclatura consistente, versionamento claro, paginação obrigatória e erros padronizados transformam uma API de funcional para profissional.

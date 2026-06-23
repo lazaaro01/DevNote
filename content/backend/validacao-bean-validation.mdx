@@ -1,0 +1,214 @@
+---
+title: "Validação de Dados com Bean Validation"
+description: "Guia completo de validação de dados em APIs REST com Bean Validation, incluindo anotações padrão, validadores customizados, grupos e mensagens em português."
+category: "Backend"
+tags:
+  - Bean Validation
+  - Jakarta Validation
+  - Spring Boot
+  - Java
+  - API
+featured: false
+publishedAt: "2026-06-24"
+---
+
+## Introdução
+
+Validar dados de entrada é uma das tarefas mais comuns em aplicações empresariais. O Bean Validation (Jakarta Validation) oferece uma abordagem declarativa baseada em anotações, eliminando blocos repetitivos de if-else e garantindo consistência nas validações.
+
+## Dependência
+
+O Spring Boot Web já inclui o `hibernate-validator` como dependência transitiva. Basta usar `@Valid` nos controllers:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-validation</artifactId>
+</dependency>
+```
+
+## Anotações Padrão
+
+```java
+public record CriarUsuarioRequest(
+    @NotBlank(message = "Nome é obrigatório")
+    @Size(min = 3, max = 100, message = "Nome deve ter entre {min} e {max} caracteres")
+    String nome,
+
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Email deve ser válido")
+    String email,
+
+    @NotNull(message = "Idade é obrigatória")
+    @Min(value = 18, message = "Idade mínima é {value} anos")
+    @Max(value = 120, message = "Idade máxima é {value} anos")
+    Integer idade,
+
+    @Pattern(regexp = "\\d{11}", message = "CPF deve conter exatamente 11 dígitos")
+    String cpf
+) {}
+```
+
+| Anotação | Propósito |
+|----------|-----------|
+| `@NotNull` | Valor não pode ser nulo |
+| `@NotBlank` | String não pode ser nula nem vazia (com whitespace) |
+| `@NotEmpty` | Collection/String não pode ser vazia |
+| `@Size(min, max)` | Tamanho entre mínimo e máximo |
+| `@Min` / `@Max` | Valor numérico mínimo/máximo |
+| `@Email` | Formato de email |
+| `@Pattern` | Expressão regular |
+| `@Positive` / `@PositiveOrZero` | Número positivo |
+| `@Past` / `@Future` | Data no passado/futuro |
+
+## Ativando a Validação no Controller
+
+```java
+@RestController
+@RequestMapping("/api/usuarios")
+public class UsuarioController {
+
+    @PostMapping
+    public ResponseEntity<UsuarioResponse> criar(
+            @RequestBody @Valid CriarUsuarioRequest request) {
+        var usuario = service.salvar(request);
+        return ResponseEntity.status(201).body(usuario);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioResponse> atualizar(
+            @PathVariable Long id,
+            @RequestBody @Valid AtualizarUsuarioRequest request) {
+        var usuario = service.atualizar(id, request);
+        return ResponseEntity.ok(usuario);
+    }
+}
+```
+
+## Validadores Customizados
+
+Crie sua própria anotação para validações específicas:
+
+```java
+@Target({FIELD})
+@Retention(RUNTIME)
+@Constraint(validatedBy = EmailUnicoValidator.class)
+public @interface EmailUnico {
+    String message() default "Email já cadastrado";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
+}
+```
+
+```java
+@Component
+public class EmailUnicoValidator implements ConstraintValidator<EmailUnico, String> {
+
+    @Autowired
+    private UsuarioRepository repository;
+
+    @Override
+    public boolean isValid(String email, ConstraintValidatorContext context) {
+        if (email == null) return true;
+        return repository.findByEmail(email).isEmpty();
+    }
+}
+```
+
+Uso:
+
+```java
+public record CriarUsuarioRequest(
+    @NotBlank @Email @EmailUnico
+    String email
+) {}
+```
+
+## Grupos de Validação
+
+Use grupos para validar diferentes regras em diferentes contextos:
+
+```java
+public interface OnCreate {}
+public interface OnUpdate {}
+
+public record UsuarioRequest(
+    @NotNull(groups = OnUpdate.class)
+    Long id,
+
+    @NotBlank(groups = {OnCreate.class, OnUpdate.class})
+    @Size(min = 3, max = 100)
+    String nome,
+
+    @NotBlank(groups = OnCreate.class)
+    @Email
+    String email
+) {}
+```
+
+```java
+@PostMapping
+public ResponseEntity<UsuarioResponse> criar(
+        @RequestBody @Validated(OnCreate.class) UsuarioRequest request) { ... }
+
+@PutMapping("/{id}")
+public ResponseEntity<UsuarioResponse> atualizar(
+        @PathVariable Long id,
+        @RequestBody @Validated(OnUpdate.class) UsuarioRequest request) { ... }
+```
+
+## Validação em Camadas
+
+Além dos controllers, valide também na camada de serviço:
+
+```java
+@Service
+@Validated
+public class UsuarioService {
+
+    public Usuario salvar(@Valid Usuario usuario) {
+        return repository.save(usuario);
+    }
+}
+```
+
+## Mensagens em Português
+
+Crie `ValidationMessages.properties` no classpath:
+
+```properties
+# src/main/resources/ValidationMessages.properties
+jakarta.validation.constraints.NotBlank.message = {campo} é obrigatório
+jakarta.validation.constraints.Email.message = Email inválido
+jakarta.validation.constraints.Size.message = {campo} deve ter entre {min} e {max} caracteres
+jakarta.validation.constraints.Min.message = Valor mínimo é {value}
+```
+
+Ou defina mensagens direto na anotação com `message` (como nos exemplos acima).
+
+## Validação Condicional
+
+Para validações que dependem de múltiplos campos:
+
+```java
+@Target({TYPE})
+@Retention(RUNTIME)
+@Constraint(validatedBy = SenhasIguaisValidator.class)
+public @interface SenhasIguais {
+    String message() default "Senhas não conferem";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
+}
+```
+
+```java
+@SenhasIguais
+public record AlterarSenhaRequest(
+    @NotBlank String senha,
+    @NotBlank String confirmacaoSenha
+) {}
+```
+
+## Conclusão
+
+O Bean Validation elimina a necessidade de validar manualmente cada campo com if-elses. Combinando as anotações padrão com validadores customizados e grupos, você cria uma camada de validação declarativa, consistente e de fácil manutenção em toda a aplicação.

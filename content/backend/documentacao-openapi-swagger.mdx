@@ -1,0 +1,175 @@
+---
+title: "Documentação de APIs com OpenAPI e Swagger"
+description: "Aprenda a documentar APIs REST automaticamente com springdoc-openapi, gerar especificações OpenAPI 3.0 e testar endpoints com Swagger UI."
+category: "Backend"
+tags:
+  - OpenAPI
+  - Swagger
+  - Documentação
+  - Spring Boot
+  - Java
+featured: false
+publishedAt: "2026-06-24"
+---
+
+## Introdução
+
+Documentar uma API manualmente é trabalhoso e vive desatualizado. Com `springdoc-openapi`, a documentação é gerada automaticamente a partir das anotações dos controllers, produzindo uma especificação OpenAPI 3.0 que pode ser visualizada e testada via Swagger UI.
+
+## Configuração
+
+Adicione a dependência ao `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.8.0</version>
+</dependency>
+```
+
+Pronto. Acesse `http://localhost:8080/swagger-ui.html` para ver a documentação interativa.
+
+## Personalizando a Documentação
+
+Configure informações da API com `@OpenAPIDefinition`:
+
+```java
+@OpenAPIDefinition(
+    info = @Info(
+        title = "DevVault API",
+        version = "1.0.0",
+        description = "API para gerenciamento de conteúdos da plataforma DevVault",
+        contact = @Contact(name = "Suporte DevVault", email = "suporte@devault.dev"),
+        license = @License(name = "MIT")
+    ),
+    servers = {
+        @Server(url = "http://localhost:8080", description = "Ambiente local"),
+        @Server(url = "https://api.devault.dev", description = "Produção")
+    }
+)
+@SpringBootApplication
+public class Application {}
+```
+
+## Documentando Endpoints
+
+Use as anotações do Swagger para enriquecer a documentação:
+
+```java
+@RestController
+@RequestMapping("/api/usuarios")
+@Tag(name = "Usuários", description = "Operações de gerenciamento de usuários")
+public class UsuarioController {
+
+    @Operation(summary = "Listar usuários", description = "Retorna uma lista paginada de usuários")
+    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    @GetMapping
+    public ResponseEntity<Page<Usuario>> listar(
+            @Parameter(description = "Número da página")
+            @RequestParam(defaultValue = "0") int page,
+
+            @Parameter(description = "Quantidade por página")
+            @RequestParam(defaultValue = "20") int size) {
+        // ...
+    }
+
+    @Operation(summary = "Buscar usuário por ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> buscar(
+            @Parameter(description = "ID do usuário") @PathVariable Long id) {
+        // ...
+    }
+}
+```
+
+## Documentando Models
+
+Os DTOs e models são automaticamente incluídos na especificação:
+
+```java
+@Schema(description = "Dados de resposta de um usuário")
+public record UsuarioResponse(
+    @Schema(description = "ID único do usuário", example = "1")
+    Long id,
+
+    @Schema(description = "Nome completo", example = "João Silva")
+    String nome,
+
+    @Schema(description = "Email do usuário", example = "joao@email.com")
+    String email
+) {}
+```
+
+## Agrupando por Versão
+
+Se sua API tem múltiplas versões, agrupe os endpoints:
+
+```java
+@Bean
+public GroupedOpenApi apiV1() {
+    return GroupedOpenApi.builder()
+            .group("v1")
+            .displayName("API v1")
+            .pathsToMatch("/api/v1/**")
+            .build();
+}
+
+@Bean
+public GroupedOpenApi apiV2() {
+    return GroupedOpenApi.builder()
+            .group("v2")
+            .displayName("API v2")
+            .pathsToMatch("/api/v2/**")
+            .build();
+}
+```
+
+## Autenticação na Documentação
+
+Adicione suporte a autenticação via Swagger:
+
+```java
+@Bean
+public OpenAPI customOpenAPI() {
+    return new OpenAPI()
+            .components(new Components()
+                    .addSecuritySchemes("bearer-jwt",
+                            new SecurityScheme()
+                                    .type(SecurityScheme.Type.HTTP)
+                                    .scheme("bearer")
+                                    .bearerFormat("JWT")
+                                    .description("Informe o token JWT")));
+}
+```
+
+## Exportando a Especificação
+
+A especificação OpenAPI pode ser exportada em JSON ou YAML:
+
+```bash
+# JSON
+curl http://localhost:8080/v3/api-docs
+
+# YAML
+curl http://localhost:8080/v3/api-docs.yaml
+
+# Agrupada
+curl http://localhost:8080/v3/api-docs/v1
+```
+
+## Boas Práticas
+
+- **Mantenha as descrições atualizadas** — a documentação gerada reflete o código real
+- **Use `example` nos schemas** — ajuda quem consome a API a entender o formato
+- **Documente erros** — inclua `@ApiResponse` para status de erro também
+- **Proteja o Swagger UI em produção** — desabilite ou restrinja por perfil
+- **Versionamento** — agrupe versões diferentes em grupos separados
+
+## Conclusão
+
+Com `springdoc-openapi`, documentar sua API é um efeito colateral do código que você já escreve. A especificação OpenAPI gerada automaticamente pode ser usada por times de frontend, ferramentas de teste automatizado e clientes HTTP, tornando sua API mais acessível e profissional.

@@ -1,0 +1,251 @@
+---
+title: "GraphQL com Spring Boot"
+description: "Aprenda a construir APIs GraphQL com Spring Boot usando Query by Example, mutations, resolvers e comparação com REST."
+category: "Backend"
+tags:
+  - GraphQL
+  - Spring Boot
+  - API
+  - Java
+  - Query
+featured: false
+publishedAt: "2026-06-24"
+---
+
+## Introdução
+
+GraphQL é uma linguagem de consulta para APIs que permite ao cliente solicitar exatamente os dados que precisa, nem mais, nem menos. Desenvolvido pelo Meta, é uma alternativa ao REST que oferece flexibilidade total na obtenção de dados.
+
+## GraphQL vs REST
+
+| Aspecto | REST | GraphQL |
+|---------|------|---------|
+| Dados retornados | Fixos (definidos pelo servidor) | Sob demanda (definidos pelo cliente) |
+| Múltiplos recursos | Múltiplas requisições | Única requisição |
+| Versionamento | URL ou headers | Evolução via deprecação de campos |
+| Over-fetching | Comum | Não ocorre |
+| Under-fetching | Comum (precisa de N+1 chamadas) | Não ocorre |
+
+## Configuração
+
+Adicione a dependência:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-graphql</artifactId>
+</dependency>
+```
+
+```yaml
+spring:
+  graphql:
+    graphiql:
+      enabled: true
+    schema:
+      locations: classpath:graphql/
+```
+
+## Schema GraphQL
+
+Defina o schema em `src/main/resources/graphql/schema.graphqls`:
+
+```graphql
+type Usuario {
+    id: ID!
+    nome: String!
+    email: String!
+    createdAt: String
+    pedidos: [Pedido!]
+}
+
+type Pedido {
+    id: ID!
+    total: Float!
+    status: StatusPedido!
+    criadoEm: String
+}
+
+enum StatusPedido {
+    PENDENTE
+    CONFIRMADO
+    ENVIADO
+    ENTREGUE
+    CANCELADO
+}
+
+type Query {
+    usuario(id: ID!): Usuario
+    usuarios: [Usuario!]!
+    usuariosAtivos: [Usuario!]!
+    pedidosPorUsuario(usuarioId: ID!): [Pedido!]!
+}
+
+type Mutation {
+    criarUsuario(nome: String!, email: String!): Usuario!
+    atualizarUsuario(id: ID!, nome: String, email: String): Usuario!
+    deletarUsuario(id: ID!): Boolean!
+}
+```
+
+## Resolvers (Controllers GraphQL)
+
+```java
+@Controller
+public class UsuarioResolver {
+
+    private final UsuarioService service;
+
+    @QueryMapping
+    public Mono<Usuario> usuario(@Argument Long id) {
+        return service.buscarPorId(id);
+    }
+
+    @QueryMapping
+    public Mono<List<Usuario>> usuarios() {
+        return service.listarTodos();
+    }
+
+    @MutationMapping
+    public Mono<Usuario> criarUsuario(@Argument String nome, @Argument String email) {
+        return service.salvar(new Usuario(null, nome, email));
+    }
+
+    @MutationMapping
+    public Mono<Usuario> atualizarUsuario(
+            @Argument Long id,
+            @Argument String nome,
+            @Argument String email) {
+        return service.atualizar(id, nome, email);
+    }
+
+    @MutationMapping
+    public Mono<Boolean> deletarUsuario(@Argument Long id) {
+        return service.remover(id).then(Mono.just(true));
+    }
+}
+```
+
+## Resolvers de Campo (DataLoader)
+
+Para evitar N+1 queries, use `@SchemaMapping` e `DataLoader`:
+
+```java
+@Controller
+public class PedidoResolver {
+
+    @SchemaMapping(typeName = "Usuario", field = "pedidos")
+    public Mono<List<Pedido>> pedidos(Usuario usuario) {
+        return pedidoService.buscarPorUsuario(usuario.getId());
+    }
+}
+```
+
+Com DataLoader para batch loading:
+
+```java
+@Bean
+public DataLoader<Long, List<Pedido>> pedidosDataLoader(PedidoService service) {
+    return new MappedBatchLoader<>(ids -> {
+        var pedidos = service.buscarPorIds(ids);
+        return Mono.just(pedidos.stream()
+                .collect(Collectors.groupingBy(Pedido::getUsuarioId)));
+    });
+}
+```
+
+## Queries no Cliente
+
+```graphql
+# Cliente pede apenas os dados que precisa
+query BuscarUsuario {
+    usuario(id: 1) {
+        nome
+        email
+        pedidos {
+            total
+            status
+        }
+    }
+}
+```
+
+Resposta:
+
+```json
+{
+    "data": {
+        "usuario": {
+            "nome": "João Silva",
+            "email": "joao@email.com",
+            "pedidos": [
+                { "total": 150.00, "status": "ENTREGUE" }
+            ]
+        }
+    }
+}
+```
+
+## Tratamento de Erros
+
+```java
+@ControllerAdvice
+public class GraphQLExceptionHandler {
+
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public void handleNotFound(RecursoNaoEncontradoException ex) {
+        throw new GraphQLError(ex.getMessage());
+    }
+}
+```
+
+Ou implemente `DataFetcherExceptionResolver`:
+
+```java
+@Component
+public class CustomExceptionResolver implements DataFetcherExceptionResolver {
+
+    @Override
+    public Mono<List<GraphQLError>> resolveException(
+            DataFetcherExceptionHandlerParameters params) {
+        var ex = params.getException();
+        if (ex instanceof RecursoNaoEncontradoException) {
+            return Mono.just(List.of(
+                    GraphqlErrorBuilder.newError()
+                            .message(ex.getMessage())
+                            .errorType(ErrorType.NOT_FOUND)
+                            .build()));
+        }
+        return Mono.empty();
+    }
+}
+```
+
+## Segurança
+
+Proteja o endpoint GraphQL com Spring Security:
+
+```java
+@Bean
+public SecurityFilterChain graphQLSecurity(HttpSecurity http) throws Exception {
+    http
+        .securityMatcher("/graphql/**")
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/graphql").authenticated()
+            .anyRequest().denyAll());
+    return http.build();
+}
+```
+
+## Boas Práticas
+
+- **Documente o schema** — use descrições nos tipos e campos
+- **Limite profundidade** — evite queries recursivas infinitas
+- **Pagine resultados** — não retorne listas sem paginação
+- **Use DataLoader** — evite N+1 queries
+- **Rate limiting** — proteja contra queries pesadas
+- **Deprecation** — marque campos como `@deprecated` em vez de remover abruptamente
+
+## Conclusão
+
+GraphQL oferece uma flexibilidade que REST não consegue igualar quando o cliente precisa de dados sob demanda. Com o suporte nativo do Spring Boot para GraphQL, construir uma API com queries flexíveis e mutations tipadas é surpreendentemente simples e produtivo.

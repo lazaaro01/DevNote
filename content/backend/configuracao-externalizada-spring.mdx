@@ -1,0 +1,227 @@
+---
+title: "Configuração Externalizada no Spring Boot"
+description: "Aprenda a externalizar configurações em aplicações Spring Boot usando @Value, @ConfigurationProperties, perfis, arquivos YAML e boas práticas."
+category: "Backend"
+tags:
+  - Spring Boot
+  - Configuração
+  - Properties
+  - YAML
+  - Java
+featured: false
+publishedAt: "2026-06-24"
+---
+
+## Introdução
+
+Uma aplicação profissional nunca deve ter configurações hardcoded. O Spring Boot oferece um sistema robusto de configuração externalizada que permite variar o comportamento entre ambientes (dev, staging, produção) sem alterar o código-fonte.
+
+## @Value: Injeção Simples
+
+A forma mais direta de acessar propriedades:
+
+```java
+@Component
+public class EmailConfig {
+
+    @Value("${email.host:smtp.gmail.com}")
+    private String host;
+
+    @Value("${email.port:587}")
+    private int port;
+
+    @Value("${email.username}")
+    private String username;
+
+    @Value("${email.password}")
+    private String password;
+}
+```
+
+Com fallback (valor padrão após `:`):
+
+```properties
+email.host=smtp.gmail.com
+email.port=587
+email.username=api@devault.dev
+email.password=${SECRET_EMAIL_PASSWORD}
+```
+
+## @ConfigurationProperties: Bind Estruturado
+
+Para agrupar configurações relacionadas, use classes tipadas:
+
+```java
+@ConfigurationProperties(prefix = "email")
+public class EmailProperties {
+
+    private String host;
+    private int port;
+    private String username;
+    private String password;
+    private Pool pool = new Pool();
+
+    // getters e setters
+
+    public static class Pool {
+        private int maxSize = 10;
+        private int timeout = 5000;
+        // getters e setters
+    }
+}
+```
+
+```yaml
+email:
+  host: smtp.gmail.com
+  port: 587
+  username: api@devault.dev
+  password: ${SECRET_EMAIL_PASSWORD}
+  pool:
+    max-size: 20
+    timeout: 3000
+```
+
+Habilite no projeto:
+
+```java
+@EnableConfigurationProperties(EmailProperties.class)
+@SpringBootApplication
+public class Application {}
+```
+
+Ou use `@ConfigurationPropertiesScan`:
+
+```java
+@ConfigurationPropertiesScan("com.devault.config")
+@SpringBootApplication
+public class Application {}
+```
+
+## Perfis (Profiles)
+
+Ambientes diferentes exigem configurações diferentes:
+
+```yaml
+# application.yml — configurações compartilhadas
+spring:
+  profiles:
+    active: dev
+
+app:
+  name: DevVault
+```
+
+```yaml
+# application-dev.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/devault_dev
+    username: dev
+    password: dev
+
+app:
+  log-level: DEBUG
+```
+
+```yaml
+# application-prod.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://proddb:5432/devault
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+app:
+  log-level: WARN
+```
+
+## Ordem de Precedência
+
+O Spring Boot segue uma ordem hierárquica (do mais prioritário para o menos):
+
+1. **Variáveis de ambiente** — `SPRING_DATASOURCE_URL`
+2. **Argumentos de linha de comando** — `--spring.datasource.url=jdbc:...`
+3. **Properties externalizadas** — `application-{profile}.properties` fora do JAR
+4. **Properties empacotadas** — `application-{profile}.yml` dentro do JAR
+5. **application.yml** — padrão
+
+```bash
+java -jar app.jar \
+  --spring.profiles.active=prod \
+  --app.log-level=INFO
+```
+
+## Propriedades com Segredos
+
+Nunca coloque senhas e tokens no código. Use variáveis de ambiente:
+
+```yaml
+spring:
+  datasource:
+    password: ${DB_PASSWORD}
+  redis:
+    password: ${REDIS_PASSWORD}
+
+jwt:
+  secret: ${JWT_SECRET}
+```
+
+Ou arquivos `.env` locais (não versionados):
+
+```bash
+# .env
+DB_PASSWORD=minha_senha_segura
+JWT_SECRET=chave_super_secreta_123
+```
+
+## Propriedades Customizadas com Validação
+
+Valide as configurações na inicialização:
+
+```java
+@ConfigurationProperties(prefix = "app.security")
+@Validated
+public class SecurityProperties {
+
+    @NotBlank(message = "JWT secret é obrigatório")
+    private String jwtSecret;
+
+    @Min(value = 3600, message = "Token expiry mínimo é 1 hora")
+    private int tokenExpirySeconds = 86400;
+
+    @NotEmpty
+    private List<String> allowedOrigins;
+
+    // getters e setters
+}
+```
+
+## Propriedades em Terceiros
+
+Muitas bibliotecas expõem propriedades customizáveis via `@ConfigurationProperties`:
+
+```yaml
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd'T'HH:mm:ss'Z'
+```
+
+## Boas Práticas
+
+- **Prefira `@ConfigurationProperties` a `@Value`** — mais organizado e type-safe
+- **Use prefixos** — agrupe propriedades relacionadas com o mesmo prefixo
+- **Valores padrão** — sempre que possível, forneça defaults seguros
+- **Nunca hardcode** — nem mesmo em testes; use `application-test.yml`
+- **Documente** — descreva cada propriedade no YAML com comentários ou metadados
+- **Validados na inicialização** — use `@Validated` para falhar rápido
+
+## Conclusão
+
+A configuração externalizada do Spring Boot permite que uma mesma aplicação rode em múltiplos ambientes sem alterar uma linha de código. Combinando `@ConfigurationProperties`, perfis e variáveis de ambiente, você obtém flexibilidade máxima com segurança e rastreabilidade.
