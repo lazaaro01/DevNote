@@ -138,16 +138,37 @@ Renderizado client-side com tema escuro, fallback de erro e estado de carregamen
 - **Botão Copiar** em todos os blocos de código (feedback "Copiado!" por 2s)
 - Highlight de linguagem via rehype-pretty-code
 
-### 🖼️ OG Images Dinâmicas
+### 🖼️ OG Images Dinâmicas (API Route)
 
-Cada artigo gera automaticamente uma imagem Open Graph 1200x630 via `/api/og` com:
+Cada artigo gera automaticamente uma imagem Open Graph 1200x630 via rota de API com Edge Runtime.
 
-- Gradiente escuro com cor de acento baseada no tema do artigo
-- Badge da categoria
-- Título centralizado
-- Assinatura DevVault
+**Rota:** `GET /api/og`
 
-Usado em compartilhamentos sociais (Twitter, WhatsApp, Discord, LinkedIn).
+**Parâmetros:**
+
+| Parâmetro | Obrigatório | Descrição |
+|-----------|-------------|-----------|
+| `title` | Não | Título centralizado (padrão: "DevVault") |
+| `category` | Não | Badge da categoria no topo |
+| `theme` | Não | Cor de acento do gradiente (padrão: verde) |
+
+**Cores de tema disponíveis:** `violet`, `blue`, `emerald`, `amber`, `rose`, `cyan`, `orange`, `pink`, `indigo`, `red`, `fuchsia`
+
+**Exemplo de uso manual:**
+
+```
+/api/og?title=Arquitetura+Hexagonal&category=Arquitetura&theme=violet
+```
+
+**Uso automático:** cada artigo chama a rota no `generateMetadata` com `title`, `category` e `theme` vindos do frontmatter. A imagem é usada em compartilhamentos sociais (Twitter, WhatsApp, Discord, LinkedIn).
+
+A imagem renderiza:
+- Gradiente escuro com cor de acento baseada no tema
+- Grid overlay com linhas diagonais sutis
+- Glow radial na cor de acento
+- Badge da categoria com borda
+- Título centralizado em branco (text-wrap: balance)
+- Assinatura "DevVault • Lázaro Vasconcelos"
 
 ### 🔍 SEO
 
