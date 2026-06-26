@@ -12,13 +12,13 @@ export default function TagLink({ tag, className }: { tag: string; className?: s
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
-        router.push(`/search?q=${encodeURIComponent(tag)}`);
+        router.push(`/tag/${encodeURIComponent(tag)}`);
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           e.stopPropagation();
-          router.push(`/search?q=${encodeURIComponent(tag)}`);
+          router.push(`/tag/${encodeURIComponent(tag)}`);
         }
       }}
       className={`cursor-pointer transition-colors ${className ?? ""}`}

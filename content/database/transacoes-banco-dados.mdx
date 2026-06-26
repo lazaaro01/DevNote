@@ -1,0 +1,153 @@
+---
+title: "Transações em Banco de Dados"
+description: "Conheça o conceito de transações, as propriedades ACID, níveis de isolamento e como gerenciar concorrência."
+category: "Banco de Dados"
+tags:
+  - "Transações"
+  - "ACID"
+  - "Isolamento"
+  - "Concorrência"
+featured: false
+publishedAt: "2026-06-25"
+---
+
+## O que é uma Transação?
+
+Uma transação é uma unidade lógica de trabalho composta por uma ou mais operações no banco de dados. A transação garante que todas as operações sejam executadas com sucesso (commit) ou que nenhuma delas tenha efeito (rollback).
+
+```sql
+BEGIN;
+
+UPDATE contas SET saldo = saldo - 100 WHERE id = 1;
+UPDATE contas SET saldo = saldo + 100 WHERE id = 2;
+
+COMMIT; -- ou ROLLBACK em caso de erro
+```
+
+## Propriedades ACID
+
+### Atomicidade
+
+A transação é executada por completo ou não é executada. Se qualquer operação falhar, todas as operações anteriores são desfeitas.
+
+### Consistência
+
+A transação leva o banco de dados de um estado válido para outro estado válido. Todas as regras de integridade (constraints, triggers) devem ser respeitadas.
+
+### Isolamento
+
+Transações concorrentes não devem interferir umas nas outras. O nível de isolamento define o grau de visibilidade entre transações.
+
+### Durabilidade
+
+Uma vez confirmada (committed), a transação persiste mesmo em caso de falha do sistema. O banco garante isso através de **write-ahead logging (WAL)**.
+
+## Níveis de Isolamento
+
+O padrão SQL define quatro níveis de isolamento, cada um com diferentes garantias:
+
+| Nível | Dirty Read | Non-Repeatable Read | Phantom Read | Serialization Anomaly |
+|-------|-----------|---------------------|--------------|----------------------|
+| READ UNCOMMITTED | Possível | Possível | Possível | Possível |
+| READ COMMITTED | Evitado | Possível | Possível | Possível |
+| REPEATABLE READ | Evitado | Evitado | Possível | Possível |
+| SERIALIZABLE | Evitado | Evitado | Evitado | Evitado |
+
+### READ UNCOMMITTED
+
+Permite ler dados escritos por transações ainda não confirmadas (dirty read). Raramente usado na prática.
+
+```sql
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+```
+
+### READ COMMITTED (Padrão no PostgreSQL, SQL Server, Oracle)
+
+Garante que a leitura veja apenas dados confirmados. É o nível mais comum.
+
+```sql
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+```
+
+**Problema:** se a mesma consulta for executada duas vezes na mesma transação, pode retornar resultados diferentes (non-repeatable read).
+
+### REPEATABLE READ
+
+Garante que os dados lidos não mudem durante a transação. Se a mesma linha for lida novamente, o valor será o mesmo.
+
+```sql
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+```
+
+**Problema:** novas linhas inseridas por outras transações podem aparecer (phantom read).
+
+### SERIALIZABLE
+
+Maior nível de isolamento. Executa as transações como se fossem sequenciais, uma após a outra.
+
+```sql
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+```
+
+**Custo:** menor concorrência, maior chance de conflitos e retentativas.
+
+## Problemas de Concorrência
+
+### Dirty Read
+
+Uma transação lê dados escritos por outra transação que ainda não foi confirmada. Se a segunda transação for desfeita, a primeira trabalhou com dados inválidos.
+
+### Non-Repeatable Read
+
+Uma transação lê a mesma linha duas vezes e obtém valores diferentes porque outra transação modificou e confirmou a linha entre as leituras.
+
+### Phantom Read
+
+Uma transação executa a mesma consulta duas vezes e obtém um conjunto diferente de linhas porque outra transação inseriu ou removeu registros entre as execuções.
+
+## Como o Banco Implementa Isolamento
+
+### Lock-based (Bloqueio)
+
+```text
+Transação A: UPDATE contas SET saldo = saldo - 100 WHERE id = 1;
+Transação B: UPDATE contas SET saldo = saldo - 50 WHERE id = 1; -- Aguarda bloqueio
+```
+
+A transação A adquire um lock na linha. A transação B precisa esperar até que A termine.
+
+### MVCC (Multi-Version Concurrency Control)
+
+Usado por PostgreSQL, Oracle, MySQL (InnoDB). Cada transação enxerga um **snapshot** do banco no momento em que iniciou.
+
+```
+T1: Inicia (vê snapshot S1) → lê saldo = 1000
+T2: Inicia (vê snapshot S2) → atualiza saldo para 900
+T1: lê saldo novamente → ainda vê 1000 (seu snapshot)
+```
+
+Vantagem: leituras nunca bloqueiam escritas e vice-versa.
+
+## Deadlocks
+
+Ocorrem quando duas transações esperam uma pela outra liberar um recurso.
+
+```sql
+-- Transação A
+UPDATE contas SET saldo = saldo - 100 WHERE id = 1; -- Lock na linha 1
+UPDATE contas SET saldo = saldo + 100 WHERE id = 2; -- Aguarda lock da linha 2
+
+-- Transação B
+UPDATE contas SET saldo = saldo - 50 WHERE id = 2; -- Lock na linha 2
+UPDATE contas SET saldo = saldo + 50 WHERE id = 1; -- Aguarda lock da linha 1
+```
+
+O banco detecta o deadlock e escolhe uma transação como vítima, revertendo-a.
+
+## Boas Práticas
+
+1. **Mantenha transações curtas** — quanto mais longa a transação, maior a chance de conflitos
+2. **Execute operações de maior risco no final** — reduza o tempo entre a última operação e o commit
+3. **Escolha o nível de isolamento adequado** — READ COMMITTED é suficiente para a maioria dos casos
+4. **Não confie em rollback para lógica de negócio** — rollback é para recuperação de erros
+5. **Monitore deadlocks** — configure alertas para identificar padrões de conflito

@@ -1,7 +1,9 @@
 import React from "react";
 import { compileMDX } from "next-mdx-remote/rsc";
+import Image from "next/image";
 import { slugify } from "@/lib/utils";
 import MermaidRenderer from "./MermaidRenderer";
+import CodeBlock from "./CodeBlock";
 
 const components = {
   pre: ({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) => {
@@ -15,7 +17,20 @@ const components = {
     ) {
       return <MermaidRenderer chart={String(child.props.children ?? "")} />;
     }
-    return <pre {...props}>{children}</pre>;
+    return <CodeBlock {...props}>{children}</CodeBlock>;
+  },
+  img: ({ src, alt }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    if (!src || typeof src !== "string") return null;
+    return (
+      <Image
+        src={src}
+        alt={alt ?? ""}
+        width={800}
+        height={450}
+        className="rounded-lg"
+        sizes="(max-width: 768px) 100vw, 800px"
+      />
+    );
   },
   h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
     const id = slugify(typeof children === "string" ? children : "");

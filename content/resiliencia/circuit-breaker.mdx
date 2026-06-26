@@ -1,0 +1,146 @@
+---
+title: "Circuit Breaker"
+description: "Entenda o padrão Circuit Breaker para evitar falhas em cascata e proteger sistemas distribuídos."
+category: "Resiliência de Sistemas"
+tags:
+  - "Circuit Breaker"
+  - "Resiliência"
+  - "Falhas"
+  - "Sistemas Distribuídos"
+featured: false
+publishedAt: "2026-06-25"
+---
+
+## O Problema
+
+Em sistemas distribuídos, chamadas remotas podem falhar por diversos motivos: rede instável, serviço sobrecarregado, timeout, etc. Sem proteção, uma falha em um serviço pode causar **falhas em cascata** — todos os serviços que dependem dele também falham, consumindo recursos desnecessariamente.
+
+```text
+Serviço A → Serviço B (lento/instável)
+  ↓
+Serviço A acumula threads/conexões esperando resposta
+  ↓
+Serviço A fica sem recursos para atender novos requests
+  ↓
+Serviço C (que chama A) também começa a falhar
+  ↓
+Falha em cascata por todo o sistema
+```
+
+## O que é Circuit Breaker?
+
+O Circuit Breaker é um padrão que monitora chamadas para um serviço externo e interrompe automaticamente as requisições quando a taxa de falhas ultrapassa um limite. Isso permite que o serviço se recupere sem ser sobrecarregado.
+
+## Estados do Circuit Breaker
+
+```
+        ┌──────────────┐
+        │              │
+        │   CLOSED     │ ← Estado normal, requisições passam
+        │              │
+        └──────┬───────┘
+               │ Falhas > threshold
+               ▼
+        ┌──────────────┐
+        │              │
+        │    OPEN      │ ← Requisições são rejeitadas imediatamente
+        │              │
+        └──────┬───────┘
+               │ Timeout expirou
+               ▼
+        ┌──────────────┐
+        │              │
+        │   HALF-OPEN  │ ← Requisição de teste é permitida
+        │              │
+        └──────┬───────┘
+           ┌───┴───┐
+           │       │
+         Sucesso Falha
+           │       │
+           ▼       ▼
+        CLOSED   OPEN
+```
+
+### CLOSED (Fechado)
+
+Estado normal. Todas as requisições passam. O circuit breaker monitora a taxa de falhas.
+
+### OPEN (Aberto)
+
+Quando a taxa de falhas excede o limite configurado, o circuito abre. As requisições são **rejeitadas imediatamente** sem chamar o serviço — a falha é rápida (fail-fast).
+
+Após um período configurado (timeout), o circuito transiciona para HALF-OPEN.
+
+### HALF-OPEN (Semiaberto)
+
+Um número limitado de requisições de teste é permitido. Se forem bem-sucedidas, o circuito fecha. Caso contrário, volta para OPEN.
+
+## Implementação com Resilience4j
+
+```java
+CircuitBreaker circuitBreaker = CircuitBreaker.of("servicoExterno",
+    CircuitBreakerConfig.custom()
+        .failureRateThreshold(50)                    // 50% de falhas abre o circuito
+        .waitDurationInOpenState(Duration.ofSeconds(30)) // tempo em OPEN
+        .slidingWindowSize(10)                      // janela de 10 chamadas
+        .build()
+);
+
+// Uso com decorador
+Supplier<String> supplier = () -> servico.externo();
+Supplier<String> decorado = CircuitBreaker.decorateSupplier(circuitBreaker, supplier);
+
+Try<String> resultado = Try.ofSupplier(decorado)
+    .recover(throwable -> fallback());
+```
+
+## Estratégias de Fallback
+
+Quando o circuito está aberto, é essencial fornecer uma resposta alternativa:
+
+```java
+// Cache de resposta anterior
+String fallback = cache.get(key);
+if (fallback != null) return fallback;
+
+// Resposta padrão
+return new RespostaPadrao("Serviço temporariamente indisponível");
+
+// Dados parciais
+return obterDadosParciais();
+```
+
+## Considerações
+
+### Thresholds
+
+| Parâmetro | Valor Sugerido | Descrição |
+|-----------|---------------|-----------|
+| failureRateThreshold | 50% | Percentual de falhas para abrir o circuito |
+| waitDurationInOpenState | 30-60s | Tempo em OPEN antes de testar |
+| slidingWindowSize | 10-100 | Número de chamadas na janela de monitoramento |
+| minimumNumberOfCalls | 5-10 | Mínimo de chamadas para calcular a taxa |
+
+### Logging e Métricas
+
+```java
+circuitBreaker.getEventPublisher()
+    .onStateTransition(event ->
+        log.info("Circuit Breaker {}: {} -> {}",
+            event.getCircuitBreakerName(),
+            event.getStateTransition().getFromState(),
+            event.getStateTransition().getToState()
+        )
+    )
+    .onFailureRateExceeded(event ->
+        log.warn("Taxa de falha excedida: {}%", event.getFailureRate())
+    );
+```
+
+## Boas Práticas
+
+1. **Configure timeouts em conjunto** — circuit breaker sem timeout pode manter requisições pendentes indefinidamente
+2. **Use diferentes configurações por serviço** — cada dependência tem comportamento diferente
+3. **Monitore os estados** — alertas para transições OPEN indicam problemas na dependência
+4. **Sempre implemente fallback** — mesmo que seja apenas uma resposta de degradação
+5. **Teste o comportamento** — simule falhas para verificar se o circuit breaker reage conforme esperado

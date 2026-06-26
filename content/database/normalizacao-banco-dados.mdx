@@ -1,0 +1,193 @@
+---
+title: "Normalização de Banco de Dados"
+description: "Aprenda as formas normais (1NF, 2NF, 3NF) e como aplicá-las para eliminar redundâncias e anomalias."
+category: "Banco de Dados"
+tags:
+  - "Normalização"
+  - "Modelagem"
+  - "Formas Normais"
+  - "SQL"
+featured: false
+publishedAt: "2026-06-25"
+---
+
+## O que é Normalização?
+
+Normalização é o processo de organizar os dados em um banco de dados relacional para reduzir redundância e dependências inconsistentes. O objetivo é dividir tabelas grandes em tabelas menores e relacioná-las através de chaves estrangeiras.
+
+## Por que Normalizar?
+
+**Problemas de um banco não normalizado:**
+
+```sql
+-- Tabela com redundância
+CREATE TABLE pedidos (
+    id INT PRIMARY KEY,
+    cliente_nome VARCHAR(100),
+    cliente_email VARCHAR(100),
+    produto_nome VARCHAR(100),
+    produto_categoria VARCHAR(50),
+    quantidade INT,
+    data_pedido DATE
+);
+```
+
+| id | cliente_nome | cliente_email | produto_nome | produto_categoria |
+|----|-------------|---------------|--------------|-------------------|
+| 1 | João | joao@email.com | Notebook | Eletrônicos |
+| 2 | João | joao@email.com | Mouse | Periféricos |
+| 3 | Maria | maria@email.com | Notebook | Eletrônicos |
+
+**Anomalias:**
+
+- **Inserção:** não é possível cadastrar um cliente sem ele fazer um pedido
+- **Atualização:** se João mudar de email, é preciso atualizar todas as linhas
+- **Exclusão:** ao excluir o pedido 2, perdemos a informação do Mouse
+
+## Primeira Forma Normal (1NF)
+
+### Regras
+
+1. Cada coluna contém valores atômicos (indivisíveis)
+2. Cada coluna contém valores de um único tipo
+3. Cada linha é única (existe uma chave primária)
+
+### Violação
+
+```sql
+CREATE TABLE clientes (
+    id INT PRIMARY KEY,
+    nome VARCHAR(100),
+    telefones VARCHAR(200) -- "11-99999-0000, 21-98888-1111"
+);
+```
+
+### Correção
+
+```sql
+CREATE TABLE clientes (
+    id INT PRIMARY KEY,
+    nome VARCHAR(100)
+);
+
+CREATE TABLE telefones (
+    id INT PRIMARY KEY,
+    cliente_id INT REFERENCES clientes(id),
+    numero VARCHAR(20)
+);
+```
+
+## Segunda Forma Normal (2NF)
+
+### Regras
+
+1. Está em 1NF
+2. Todos os atributos não-chave dependem **completamente** da chave primária (não de parte dela)
+
+### Violação
+
+```sql
+-- Chave composta: (pedido_id, produto_id)
+CREATE TABLE itens_pedido (
+    pedido_id INT,
+    produto_id INT,
+    quantidade INT,
+    produto_nome VARCHAR(100),  -- Depende apenas de produto_id, não da chave completa
+    PRIMARY KEY (pedido_id, produto_id)
+);
+```
+
+### Correção
+
+```sql
+CREATE TABLE itens_pedido (
+    pedido_id INT,
+    produto_id INT,
+    quantidade INT,
+    PRIMARY KEY (pedido_id, produto_id)
+);
+
+CREATE TABLE produtos (
+    id INT PRIMARY KEY,
+    nome VARCHAR(100),
+    categoria_id INT
+);
+```
+
+## Terceira Forma Normal (3NF)
+
+### Regras
+
+1. Está em 2NF
+2. Nenhum atributo não-chave depende transitivamente de outro atributo não-chave
+
+### Violação
+
+```sql
+CREATE TABLE pedidos (
+    id INT PRIMARY KEY,
+    cliente_id INT,
+    cliente_nome VARCHAR(100),  -- Depende de cliente_id, não de id
+    cliente_email VARCHAR(100)  -- Depende de cliente_id, não de id
+);
+```
+
+### Correção
+
+```sql
+CREATE TABLE pedidos (
+    id INT PRIMARY KEY,
+    cliente_id INT REFERENCES clientes(id),
+    data_pedido DATE
+);
+
+CREATE TABLE clientes (
+    id INT PRIMARY KEY,
+    nome VARCHAR(100),
+    email VARCHAR(100)
+);
+```
+
+## Formas Normais Avançadas
+
+### Forma Normal Boyce-Codd (BCNF)
+
+Refinamento da 3NF para lidar com dependências funcionais onde o determinante não é chave candidata.
+
+### Quarta Forma Normal (4NF)
+
+Lida com dependências multivaloradas — quando um atributo depende de outro, mas não de forma funcional.
+
+### Quinta Forma Normal (5NF)
+
+Lida com dependências de join — quando uma tabela pode ser reconstruída a partir da junção de várias tabelas menores.
+
+## Quando Desnormalizar
+
+A normalização completa nem sempre é a melhor escolha. Cenários onde a desnormalização faz sentido:
+
+| Cenário | Motivo |
+|---------|--------|
+| Data warehouse / BI | Consultas analíticas com muitas junções são lentas |
+| Alto volume de leitura | Evitar JOINs frequentes em tabelas grandes |
+| Leitura > Escrita | O custo da redundância é menor que o custo das junções |
+| Cache de dados | Armazenar dados calculados ou agregados |
+
+Exemplo de desnormalização controlada:
+
+```sql
+CREATE TABLE pedidos (
+    id INT PRIMARY KEY,
+    cliente_id INT,
+    cliente_nome VARCHAR(100), -- Desnormalizado para evitar JOIN
+    total DECIMAL(10,2)       -- Calculado e armazenado
+);
+```
+
+## Boas Práticas
+
+1. **Normalize até a 3NF por padrão** — elimina a maioria das anomalias sem complexidade excessiva
+2. **Documente decisões de desnormalização** — justifique cada caso com métricas de performance
+3. **Use constraints** — mantenha a integridade referencial mesmo em modelos desnormalizados
+4. **Considere triggers ou materialized views** como alternativa à desnormalização manual
+5. **Reavalie periodicamente** — o perfil de acesso pode mudar com o tempo

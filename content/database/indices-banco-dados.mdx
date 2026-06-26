@@ -1,0 +1,156 @@
+---
+title: "Índices em Banco de Dados"
+description: "Entenda como funcionam os índices, seus tipos e quando utilizá-los para otimizar consultas SQL."
+category: "Banco de Dados"
+tags:
+  - "Índices"
+  - "Performance"
+  - "SQL"
+  - "Otimização"
+featured: false
+publishedAt: "2026-06-25"
+---
+
+## O que são Índices?
+
+Um índice é uma estrutura de dados auxiliar que acelera a recuperação de registros em uma tabela. Funciona de forma análoga ao índice de um livro: em vez de percorrer página por página, você consulta o índice e vai direto ao conteúdo desejado.
+
+Sem índices, o banco de dados precisa realizar uma **varredura completa (full scan)** na tabela para encontrar os registros — operação custosa em tabelas grandes.
+
+## Como os Índices Funcionam?
+
+A maioria dos bancos de dados implementa índices usando **B-Tree** (árvore balanceada). A B-Tree mantém os valores ordenados e permite buscas, inserções e remoções em tempo logarítmico.
+
+```
+                   [50]
+                  /    \
+             [25]       [75]
+            /    \      /   \
+        [10,20] [30,40] [60,70] [80,90]
+```
+
+Cada nível da árvore reduz o espaço de busca pela metade. Para encontrar o valor 60, por exemplo, o banco:
+1. Começa pela raiz (50) — 60 é maior, vai para a direita
+2. Chega ao nó [75] — 60 é menor, vai para a esquerda
+3. Encontra [60,70] — valor localizado
+
+### Custo da Operação
+
+| Operação | Sem índice | Com índice (B-Tree) |
+|----------|-----------|---------------------|
+| Busca por valor | O(n) — full scan | O(log n) |
+| Inserção | O(1) — append | O(log n) |
+| Atualização do índice | — | O(log n) |
+
+## Tipos de Índice
+
+### B-Tree (Padrão)
+
+```sql
+CREATE INDEX idx_nome ON usuarios (nome);
+```
+
+- Ideal para consultas com `=`, `>`, `<`, `BETWEEN`, `LIKE 'prefixo%'`
+- Mantém os dados ordenados
+- Suporta consultas por intervalo
+
+### Hash
+
+```sql
+CREATE INDEX idx_hash_email ON usuarios USING HASH (email);
+```
+
+- Disponível no PostgreSQL e Oracle
+- Ideal apenas para consultas com `=` (igualdade exata)
+- Não suporta ordenação ou intervalo
+- Mais rápido que B-Tree para igualdade
+
+### GiST e GIN (PostgreSQL)
+
+```sql
+-- GIN para arrays e JSONB
+CREATE INDEX idx_tags ON artigos USING GIN (tags);
+
+-- GiST para dados geoespaciais
+CREATE INDEX idx_localizacao ON locais USING GiST (coordenadas);
+```
+
+- **GiST**: dados geoespaciais, texto completo, ranges
+- **GIN**: arrays, JSONB, full-text search
+- Ideais para tipos de dados complexos
+
+### Índice Composto
+
+```sql
+CREATE INDEX idx_nome_email ON usuarios (nome, email);
+```
+
+A ordem das colunas importa. O índice acima é eficiente para:
+- `WHERE nome = ?` — usa a primeira coluna
+- `WHERE nome = ? AND email = ?` — usa ambas
+- `WHERE email = ?` — **não** usa o índice (a primeira coluna é necessária)
+
+### Índice Único
+
+```sql
+CREATE UNIQUE INDEX idx_email_unico ON usuarios (email);
+```
+
+- Garante que não haja valores duplicados
+- Pode ser usado para implementar a restrição `UNIQUE`
+- Útil para evitar duplicatas mesmo sem uma constraint `UNIQUE`
+
+### Índice Parcial
+
+```sql
+CREATE INDEX idx_pedidos_ativos ON pedidos (status, data_criacao)
+WHERE status = 'PENDENTE';
+```
+
+- Indexa apenas um subconjunto dos registros
+- Menor que um índice completo
+- Ideal para filtros frequentes em tabelas grandes
+
+## Como Identificar a Necessidade de Índices
+
+### Consultas Lentas
+
+Use o comando `EXPLAIN ANALYZE` para identificar consultas lentas:
+
+```sql
+EXPLAIN ANALYZE
+SELECT * FROM pedidos WHERE cliente_id = 123;
+```
+
+Se o plano de execução mostrar `Seq Scan` (PostgreSQL) ou `Table Scan` (SQL Server), um índice pode ajudar.
+
+### Colunas com Alta Cardinalidade
+
+Índices são mais eficientes em colunas com muitos valores distintos. Indexar uma coluna `sexo` (que só tem 'M' e 'F') raramente ajuda.
+
+## Quando NÃO Usar Índices
+
+| Situação | Motivo |
+|----------|--------|
+| Tabelas pequenas (< 1000 registros) | Full scan é mais rápido que navegar na árvore |
+| Colunas com baixa cardinalidade | O índice não reduz significativamente a busca |
+| Tabelas com muitas escritas | Cada INSERT/UPDATE/DELETE atualiza o índice |
+| Colunas raramente usadas em WHERE | O índice ocupará espaço sem ser utilizado |
+
+## Cuidados com Índices
+
+**Overhead de escrita:** cada índice adicional torna as operações de escrita mais lentas. Em tabelas com alta taxa de INSERT/UPDATE, o excesso de índices pode degradar a performance.
+
+**Manutenção:** com o tempo, índices podem se fragmentar. Em PostgreSQL:
+
+```sql
+REINDEX INDEX idx_nome;
+```
+
+## Boas Práticas
+
+1. **Crie índices baseado em uso real**, não em achismo — monitore consultas lentas primeiro
+2. **Prefira índices compostos** a múltiplos índices simples quando as colunas são frequentemente consultadas juntas
+3. **Remova índices não utilizados** — eles ocupam espaço e custam escritas
+4. **Considere índices parciais** para filtros comuns em tabelas grandes
+5. **Cubra consultas com índices** que incluam todas as colunas do `SELECT` para evitar acesso à tabela (index-only scan)

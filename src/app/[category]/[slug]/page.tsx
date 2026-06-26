@@ -16,6 +16,7 @@ import {
   getRelatedContent,
   getContentList,
   getCategories,
+  getSeriesContent,
 } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
 
@@ -89,11 +90,15 @@ export function generateStaticParams() {
 
 export default async function ContentPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string; slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const { category, slug } = await params;
-  const content = getContent(category, slug);
+  const { preview } = await searchParams;
+  const isPreview = preview === "true";
+  const content = getContent(category, slug, isPreview);
 
   if (!content) notFound();
 
@@ -107,8 +112,30 @@ export default async function ContentPage({
   const themeClass = content.theme ? `theme-${content.theme}` : "";
   const layout = content.layout;
 
+  const seriesItems = content.series ? getSeriesContent(content.series) : [];
+  const currentSeriesIndex = seriesItems.findIndex((s) => s.slug === slug);
+  const prevSeries = currentSeriesIndex > 0 ? seriesItems[currentSeriesIndex - 1] : null;
+  const nextSeries = currentSeriesIndex < seriesItems.length - 1 ? seriesItems[currentSeriesIndex + 1] : null;
+
   return (
-    <div id="article-root" className={themeClass}>
+      <div id="article-root" className={themeClass}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            headline: content.title,
+            description: content.description,
+            datePublished: content.publishedAt,
+            author: { "@type": "Person", name: "DevVault" },
+            publisher: { "@type": "Person", name: "DevVault" },
+            mainEntityOfPage: { "@type": "WebPage", "@id": `/${category}/${slug}` },
+            keywords: content.tags.join(", "),
+            ...(content.series ? { isPartOf: { "@type": "Series", name: content.series } } : {}),
+          }),
+        }}
+      />
       <LayoutSwitcher layout={layout} tocContent={content.content}>
         <Breadcrumbs
           items={[
@@ -118,6 +145,20 @@ export default async function ContentPage({
         />
 
         <header className="mb-8">
+          {content.draft && (
+            <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-700">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Rascunho — não publicado
+            </div>
+          )}
+          {content.series && (
+            <div className="mb-4 text-xs text-text-secondary">
+              Série: <span className="font-semibold text-text">{content.series}</span>
+              {content.seriesOrder && <span className="ml-1">· Parte {content.seriesOrder}</span>}
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             <Link
               href={`/${category}`}
@@ -159,6 +200,38 @@ export default async function ContentPage({
           <TemplateRenderer template={content.template} />
           <MDXContent source={content.content} />
         </div>
+
+        {seriesItems.length > 1 && (
+          <section className="border-t border-slate-700 pt-8 mb-8">
+            <h2 className="text-lg font-semibold text-text mb-4">
+              Série: {content.series}
+            </h2>
+            <div className="flex items-center justify-between gap-4">
+              {prevSeries ? (
+                <Link
+                  href={`/${prevSeries.categorySlug}/${prevSeries.slug}`}
+                  className="flex items-center gap-2 text-sm text-accent hover:underline group"
+                >
+                  <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="truncate">{prevSeries.title}</span>
+                </Link>
+              ) : <div />}
+              {nextSeries ? (
+                <Link
+                  href={`/${nextSeries.categorySlug}/${nextSeries.slug}`}
+                  className="flex items-center gap-2 text-sm text-accent hover:underline group"
+                >
+                  <span className="truncate">{nextSeries.title}</span>
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ) : <div />}
+            </div>
+          </section>
+        )}
 
         {related.length > 0 && (
           <section className="border-t border-slate-700 pt-8">

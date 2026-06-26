@@ -14,6 +14,9 @@ export interface ContentMeta {
   layout: LayoutType;
   theme: string;
   template: TemplateType;
+  series?: string;
+  seriesOrder?: number;
+  draft?: boolean;
 }
 
 export interface Content extends ContentMeta {

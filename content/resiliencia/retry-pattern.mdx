@@ -1,0 +1,164 @@
+---
+title: "Retry Pattern"
+description: "Aprenda a implementar retentativas inteligentes com backoff exponencial e jitter para lidar com falhas transitórias."
+category: "Resiliência de Sistemas"
+tags:
+  - "Retry"
+  - "Resiliência"
+  - "Backoff"
+  - "Falhas Transitórias"
+featured: false
+publishedAt: "2026-06-25"
+---
+
+## Falhas Transitórias vs Permanentes
+
+**Falhas transitórias** são temporárias e tendem a desaparecer se a operação for repetida:
+
+- Timeout de rede
+- Conexão recusada (serviço reiniciando)
+- Lock de banco de dados
+- Throttling (rate limit excedido)
+
+**Falhas permanentes** não desaparecem com retentativas:
+
+- 400 Bad Request
+- 401 Unauthorized
+- 403 Forbidden
+- 404 Not Found
+
+O padrão Retry só deve ser aplicado a falhas transitórias.
+
+## Retry Simples
+
+```java
+int maxRetries = 3;
+int attempt = 0;
+
+while (attempt < maxRetries) {
+    try {
+        return servico.chamar();
+    } catch (Exception e) {
+        attempt++;
+        if (attempt >= maxRetries) throw e;
+        Thread.sleep(1000); // espera fixa
+    }
+}
+```
+
+**Problema:** espera fixa não escala — se 1000 requisições falharem simultaneamente, todas tentarão novamente ao mesmo tempo, sobrecarregando o serviço.
+
+## Backoff Exponencial
+
+Cada retentativa espera um tempo maior que a anterior:
+
+```
+ Tentativa 1: espera 1s
+ Tentativa 2: espera 2s
+ Tentativa 3: espera 4s
+ Tentativa 4: espera 8s
+ Tentativa 5: espera 16s
+```
+
+```java
+long waitTime = 1000; // 1 segundo base
+for (int i = 0; i < maxRetries; i++) {
+    try {
+        return servico.chamar();
+    } catch (Exception e) {
+        if (i == maxRetries - 1) throw e;
+        Thread.sleep(waitTime);
+        waitTime *= 2; // dobra a cada tentativa
+    }
+}
+```
+
+## Backoff com Jitter
+
+O jitter adiciona aleatoriedade ao tempo de espera para evitar o **thundering herd problem** — todas as instâncias tentando novamente no mesmo momento.
+
+```java
+long waitTime = Math.min(1000 * (long) Math.pow(2, attempt), maxDelay);
+long jitter = (long) (Math.random() * waitTime); // jitter aleatório de 0 a waitTime
+Thread.sleep(jitter);
+```
+
+```text
+Sem jitter:
+Retry 1: 1s → Retry 2: 2s → Retry 3: 4s
+(Todas as instâncias no mesmo schedule)
+
+Com jitter:
+Retry 1: 0.7s → Retry 2: 1.3s → Retry 3: 3.2s
+Retry 1: 1.2s → Retry 2: 0.8s → Retry 3: 2.1s
+(Distribuição uniforme no tempo)
+```
+
+## Implementação com Resilience4j
+
+```java
+Retry retry = Retry.of("servicoExterno",
+    RetryConfig.custom()
+        .maxAttempts(3)
+        .waitDuration(Duration.ofSeconds(1))
+        .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(1), 2))
+        .retryOnException(e -> e instanceof TransientException)
+        .build()
+);
+
+Supplier<String> supplier = Retry.decorateSupplier(retry, () -> servico.chamar());
+```
+
+### Retry com Spring Retry
+
+```java
+@Retryable(
+    value = {TransientException.class},
+    maxAttempts = 3,
+    backoff = @Backoff(delay = 1000, multiplier = 2)
+)
+public String chamarServico() {
+    return servico.chamar();
+}
+```
+
+## Retry e Circuit Breaker
+
+Retry e Circuit Breaker devem ser usados juntos:
+
+```text
+Requisição → [Retry] → [Circuit Breaker] → Serviço
+```
+
+- **Retry primeiro**: tenta novamente falhas transitórias
+- **Circuit Breaker depois**: protege contra falhas persistentes
+
+Se o retry falhar após N tentativas, a falha é considerada permanente e o circuit breaker é notificado.
+
+```java
+Retry retry = Retry.of("meuServico", configRetry);
+CircuitBreaker circuitBreaker = CircuitBreaker.of("meuServico", configCB);
+
+Supplier<String> supplier = CircuitBreaker.decorateSupplier(
+    circuitBreaker,
+    Retry.decorateSupplier(retry, () -> servico.chamar())
+);
+```
+
+## Quando NÃO Usar Retry
+
+| Situação | Motivo |
+|----------|--------|
+| Operações não idempotentes | Repetir um POST pode criar recursos duplicados |
+| Falhas 4xx (exceto 429) | Erro do cliente, não adianta repetir |
+| Latência crítica | Cada retry adiciona delay à resposta |
+| Sem fallback definido | Retry sem fallback só adia a falha |
+
+## Boas Políticas de Retry
+
+1. **Identifique falhas transitórias** — só faça retry para exceções específicas
+2. **Limite o número de tentativas** — 3-5 tentativas é o padrão recomendado
+3. **Use backoff exponencial com jitter** — evita sobrecarga no serviço alvo
+4. **Combine com circuit breaker** — retry para falhas transitórias, circuit breaker para falhas persistentes
+5. **Garanta idempotência** — a operação deve poder ser repetida sem efeitos colaterais
+6. **Monitore as taxas de retry** — aumento na taxa de retry indica problemas na dependência

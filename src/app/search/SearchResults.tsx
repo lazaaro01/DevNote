@@ -1,13 +1,7 @@
 import ContentCard from "@/components/ContentCard";
 import { getContentList } from "@/lib/content";
 import type { ContentMeta } from "@/lib/types";
-
-function normalize(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
+import Fuse from "fuse.js";
 
 export default async function SearchResults({
   query,
@@ -15,9 +9,8 @@ export default async function SearchResults({
   query: string;
 }) {
   const allContent = getContentList();
-  const normalizedQuery = normalize(query);
 
-  if (!normalizedQuery) {
+  if (!query.trim()) {
     return (
       <p className="text-text-secondary">
         Digite um termo para buscar nos conteúdos.
@@ -25,18 +18,20 @@ export default async function SearchResults({
     );
   }
 
-  const results: ContentMeta[] = allContent.filter((item) => {
-    const searchable = [
-      item.title,
-      item.description,
-      item.category,
-      ...item.tags,
-    ]
-      .map(normalize)
-      .join(" ");
-
-    return searchable.includes(normalizedQuery);
+  const fuse = new Fuse(allContent, {
+    keys: [
+      { name: "title", weight: 3 },
+      { name: "description", weight: 2 },
+      { name: "category", weight: 1 },
+      { name: "tags", weight: 2 },
+    ],
+    threshold: 0.4,
+    distance: 100,
+    ignoreLocation: true,
   });
+
+  const fuseResults = fuse.search(query);
+  const results: ContentMeta[] = fuseResults.map((r) => r.item);
 
   if (results.length === 0) {
     return (

@@ -1,0 +1,172 @@
+---
+title: "Bulkhead Pattern"
+description: "Implemente o padrão Bulkhead para isolar falhas e evitar que um componente comprometa todo o sistema."
+category: "Resiliência de Sistemas"
+tags:
+  - "Bulkhead"
+  - "Resiliência"
+  - "Isolamento"
+  - "Thread Pool"
+featured: false
+publishedAt: "2026-06-25"
+---
+
+## O Problema
+
+Em sistemas que consomem múltiplos serviços externos, um serviço lento pode monopolizar os recursos do sistema (threads, conexões) e causar falhas em cascata.
+
+```text
+Sem Bulkhead:
+
+[Requisição] → Thread Pool Único (50 threads)
+                 ├── Serviço A (rápido)  ← threads disponíveis
+                 ├── Serviço B (lento)   ← consome 40 threads
+                 └── Serviço C (rápido)  ← sem threads disponíveis!
+```
+
+Quando o Serviço B fica lento, todas as threads ficam bloqueadas esperando sua resposta, e os Serviços A e C também param de funcionar.
+
+## O que é Bulkhead?
+
+O padrão Bulkhead isola recursos em pools separados (compartimentos), limitando o impacto de uma falha a um único compartimento — como os compartimentos estanques de um navio (bulkheads).
+
+```text
+Com Bulkhead:
+
+[Requisição] → Pool A (10 threads) → Serviço A (rápido)
+             → Pool B (10 threads) → Serviço B (lento) ← isolado!
+             → Pool C (10 threads) → Serviço C (rápido)
+```
+
+Se o Serviço B falhar ou ficar lento, apenas o Pool B é afetado. Os serviços A e C continuam funcionando normalmente.
+
+## Abordagens
+
+### Bulkhead por Thread Pool (Isolamento de Threads)
+
+Cada dependência tem seu próprio pool de threads com tamanho limitado.
+
+```java
+// Pool para Serviço A
+ExecutorService poolA = Executors.newFixedThreadPool(5);
+
+// Pool para Serviço B
+ExecutorService poolB = Executors.newFixedThreadPool(5);
+
+CompletableFuture.supplyAsync(() -> servicoA.chamar(), poolA);
+CompletableFuture.supplyAsync(() -> servicoB.chamar(), poolB);
+```
+
+### Bulkhead por Semáforo (Isolamento de Concorrência)
+
+Usa semáforos para limitar o número de chamadas concorrentes sem criar threads dedicadas.
+
+```java
+Semaphore semaphoreA = new Semaphore(5);
+
+public String chamarServicoA() {
+    if (!semaphoreA.tryAcquire()) {
+        throw new BulkheadFullException("Serviço A sem capacidade");
+    }
+    try {
+        return servicoA.chamar();
+    } finally {
+        semaphoreA.release();
+    }
+}
+```
+
+## Implementação com Resilience4j
+
+```java
+// Bulkhead por semáforo
+Bulkhead bulkhead = Bulkhead.of("servicoA",
+    BulkheadConfig.custom()
+        .maxConcurrentCalls(5)
+        .maxWaitDuration(Duration.ofMillis(500))
+        .build()
+);
+
+Supplier<String> supplier = Bulkhead.decorateSupplier(bulkhead, () -> servicoA.chamar());
+
+// ThreadPoolBulkhead
+ThreadPoolBulkhead threadPoolBulkhead = ThreadPoolBulkhead.of("servicoB",
+    ThreadPoolBulkheadConfig.custom()
+        .maxThreadPoolSize(5)
+        .coreThreadPoolSize(3)
+        .queueCapacity(10)
+        .build()
+);
+
+Supplier<CompletableFuture<String>> asyncSupplier =
+    ThreadPoolBulkhead.decorateSupplier(threadPoolBulkhead, () -> servicoB.chamar());
+```
+
+## Configuração de Pool
+
+### Como determinar o tamanho do pool?
+
+Fórmula para o tamanho do pool de threads:
+
+```
+Nº de threads = (Throughput desejado × Tempo de resposta médio) / 1000
+
+Exemplo:
+Throughput: 100 requisições/segundo
+Tempo médio: 200ms
+Threads = (100 × 200) / 1000 = 20 threads
+```
+
+### Valores típicos
+
+| Criticidade | Conexões Simultâneas | Queue | Descrição |
+|-------------|---------------------|-------|-----------|
+| Alta | 10-20 | 10-20 | Serviço essencial com timeout agressivo |
+| Média | 5-10 | 5-10 | Serviço importante com tolerância a atrasos |
+| Baixa | 2-5 | 2-5 | Serviço não crítico, pode falhar |
+
+## Métricas e Monitoramento
+
+```java
+// Resilience4j expõe métricas via Micrometer
+MeterRegistry registry = new SimpleMeterRegistry();
+TaggedBulkheadMetrics.ofBulkheadRegistry(bulkheadRegistry)
+    .bindTo(registry);
+
+// Métricas disponíveis:
+// - bulkhead.max.allowed.concurrent.calls
+// - bulkhead.max.allowed.concurrent.calls
+// - bulkhead.concurrent.calls {available, rejected}
+```
+
+### Eventos
+
+```java
+bulkhead.getEventPublisher()
+    .onCallRejected(event ->
+        log.warn("Bulkhead {} rejeitou chamada", event.getBulkheadName())
+    )
+    .onCallFinished(event ->
+        metrics.timer("bulkhead." + event.getBulkheadName())
+            .record(event.getDuration())
+    );
+```
+
+## Bulkhead vs Circuit Breaker
+
+| Aspecto | Bulkhead | Circuit Breaker |
+|---------|----------|-----------------|
+| O que faz | Limita concorrência | Interrompe chamadas |
+| Baseado em | Capacidade (threads/semáforos) | Taxa de falhas |
+| Resposta | Rejeita se sem capacidade | Rejeita se taxa de falha excedida |
+| Recuperação | Assim que há capacidade | Aguarda tempo configurado |
+| Uso principal | Isolar recursos | Evitar sobrecarga |
+
+## Boas Práticas
+
+1. **Defina pools por dependência, não por operação** — cada serviço externo deve ter seu próprio bulkhead
+2. **Combine com timeouts** — threads não devem ficar bloqueadas indefinidamente
+3. **Monitore rejeições** — aumento de rejeições indica necessidade de ajuste ou problema na dependência
+4. **Prefira semáforos para I/O síncrono** — thread pools adicionam overhead de contexto
+5. **Use thread pools para I/O assíncrono** — permite maior controle sobre o paralelismo
+6. **Configure filas com cuidado** — filas grandes mascaram problemas em vez de revelá-los

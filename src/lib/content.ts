@@ -36,7 +36,7 @@ export function getCategories(): CategoryInfo[] {
     });
 }
 
-export function getContentList(category?: string): ContentMeta[] {
+export function getContentList(category?: string, includeDrafts = false): ContentMeta[] {
   const categories = category
     ? [category]
     : fs.readdirSync(contentDir).filter((f) => {
@@ -60,6 +60,9 @@ export function getContentList(category?: string): ContentMeta[] {
       const slug = file.replace(/\.mdx$/, "");
       const stats = readingTime(content);
 
+      const draft = data.draft ?? false;
+      if (draft && !includeDrafts) continue;
+
       all.push({
         slug,
         title: data.title ?? slug,
@@ -73,6 +76,9 @@ export function getContentList(category?: string): ContentMeta[] {
         layout: data.layout ?? "default",
         theme: data.theme ?? "",
         template: data.template ?? "article",
+        series: data.series,
+        seriesOrder: data.series_order,
+        draft,
       });
     }
   }
@@ -83,9 +89,22 @@ export function getContentList(category?: string): ContentMeta[] {
   );
 }
 
+export function getContentListByTag(tag: string): ContentMeta[] {
+  return getContentList().filter((item) =>
+    item.tags.some((t) => t.toLowerCase() === tag.toLowerCase())
+  );
+}
+
+export function getSeriesContent(seriesName: string): ContentMeta[] {
+  return getContentList()
+    .filter((item) => item.series === seriesName)
+    .sort((a, b) => (a.seriesOrder ?? 99) - (b.seriesOrder ?? 99));
+}
+
 export function getContent(
   category: string,
-  slug: string
+  slug: string,
+  preview = false
 ): Content | null {
   const filePath = path.join(contentDir, category, `${slug}.mdx`);
   if (!fs.existsSync(filePath)) return null;
@@ -93,6 +112,9 @@ export function getContent(
   const raw = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(raw);
   const stats = readingTime(content);
+
+  const draft = data.draft ?? false;
+  if (draft && !preview) return null;
 
   return {
     slug,
@@ -107,6 +129,9 @@ export function getContent(
     layout: data.layout ?? "default",
     theme: data.theme ?? "",
     template: data.template ?? "article",
+    series: data.series,
+    seriesOrder: data.series_order,
+    draft,
     content,
   };
 }

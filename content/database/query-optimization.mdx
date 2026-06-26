@@ -1,0 +1,167 @@
+---
+title: "Otimização de Consultas SQL"
+description: "Técnicas para identificar gargalos, analisar planos de execução e escrever consultas SQL eficientes."
+category: "Banco de Dados"
+tags:
+  - "SQL"
+  - "Performance"
+  - "Otimização"
+  - "EXPLAIN"
+featured: false
+publishedAt: "2026-06-25"
+---
+
+## Por que uma Consulta é Lenta?
+
+Consultas lentas geralmente são causadas por um ou mais destes fatores:
+
+1. **Varredura completa da tabela** (full table scan) quando apenas alguns registros são necessários
+2. **Junções ineficientes** — ordem ou tipo de JOIN inadequado
+3. **Falta de índices** — filtros e junções sem suporte de índice
+4. **Subconsultas desnecessárias** — executadas linha a linha em vez de operações em conjunto
+5. **Retorno excessivo de dados** — colunas ou linhas além do necessário
+
+## Usando EXPLAIN
+
+O `EXPLAIN` mostra o plano de execução que o banco de dados escolheu para uma consulta.
+
+```sql
+EXPLAIN ANALYZE
+SELECT c.nome, COUNT(p.id) as total_pedidos
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.id
+WHERE c.ativo = true
+GROUP BY c.id, c.nome;
+```
+
+```text
+HashAggregate  (cost=185.42..195.42 rows=1000 width=42)
+  ->  Hash Join  (cost=45.12..175.42 rows=2000 width=34)
+        Hash Cond: (c.id = p.cliente_id)
+        ->  Seq Scan on clientes c  (cost=0.00..120.00 rows=1000 width=26)
+              Filter: ativo = true
+        ->  Hash  (cost=30.00..30.00 rows=1200 width=8)
+              ->  Seq Scan on pedidos p  (cost=0.00..30.00 rows=1200 width=8)
+```
+
+**O que observar:**
+
+- **Seq Scan** na tabela `clientes` com filtro — se `rows=1000` for grande, um índice em `ativo` pode ajudar
+- **Custo estimado vs real** — diferenças grandes indicam estatísticas desatualizadas
+
+## Técnicas de Otimização
+
+### 1. Use Índices Estrategicamente
+
+```sql
+-- Crie índices para filtros frequentes
+CREATE INDEX idx_clientes_ativo ON clientes (ativo);
+
+-- Índices compostos para consultas com múltiplos filtros
+CREATE INDEX idx_pedidos_cliente_data ON pedidos (cliente_id, data_pedido);
+```
+
+### 2. Evite SELECT *
+
+```sql
+-- Ruim: retorna todas as colunas, força index scan menos eficiente
+SELECT * FROM clientes WHERE email = 'joao@email.com';
+
+-- Bom: retorna apenas as colunas necessárias
+SELECT id, nome FROM clientes WHERE email = 'joao@email.com';
+```
+
+### 3. Prefira JOINs a Subconsultas
+
+```sql
+-- Lento: subquery executada para cada linha
+SELECT nome, (SELECT COUNT(*) FROM pedidos WHERE cliente_id = c.id) as total
+FROM clientes c;
+
+-- Rápido: JOIN único
+SELECT c.nome, COUNT(p.id) as total
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.id
+GROUP BY c.id;
+```
+
+### 4. Use EXISTS ao invés de IN
+
+```sql
+-- Lento: gera todos os resultados da subquery
+SELECT * FROM clientes WHERE id IN (
+    SELECT cliente_id FROM pedidos WHERE status = 'ATIVO'
+);
+
+-- Rápido: para quando encontrar a primeira ocorrência
+SELECT * FROM clientes c WHERE EXISTS (
+    SELECT 1 FROM pedidos p WHERE p.cliente_id = c.id AND p.status = 'ATIVO'
+);
+```
+
+### 5. Paginação Eficiente
+
+```sql
+-- Lento em páginas avançadas: OFFSET precisa ler todos os registros anteriores
+SELECT * FROM pedidos ORDER BY id OFFSET 10000 LIMIT 20;
+
+-- Rápido: keyset pagination (baseado no último valor)
+SELECT * FROM pedidos
+WHERE id > 10000
+ORDER BY id
+LIMIT 20;
+```
+
+## Problemas Comuns
+
+### N+1 Query
+
+Ocorre quando uma consulta principal é seguida por N consultas adicionais para cada registro.
+
+```sql
+-- 1 consulta para listar pedidos + 1 consulta por pedido para buscar cliente
+SELECT * FROM pedidos; -- 1 consulta
+-- Para cada pedido:
+SELECT * FROM clientes WHERE id = ?; -- N consultas
+```
+
+**Solução:** usar JOIN ou batch loading (em ORMs).
+
+### Estatísticas Desatualizadas
+
+O otimizador usa estatísticas para escolher o plano. Se estiverem desatualizadas:
+
+```sql
+ANALYZE clientes;
+ANALYZE pedidos;
+```
+
+## Monitoramento
+
+### Consultas Mais Lentas (PostgreSQL)
+
+```sql
+SELECT query, calls, total_time / calls as avg_time, rows
+FROM pg_stat_statements
+ORDER BY total_time DESC
+LIMIT 10;
+```
+
+### Identificando Bloqueios
+
+```sql
+SELECT blocked_locks.pid as blocked_pid,
+       blocking_locks.pid as blocking_pid
+FROM pg_catalog.pg_locks blocked_locks
+JOIN pg_catalog.pg_locks blocking_locks
+  ON blocked_locks.locktype = blocking_locks.locktype;
+```
+
+## Boas Práticas
+
+1. **Meça antes de otimizar** — use EXPLAIN ANALYZE e ferramentas de monitoramento
+2. **Otimize as consultas mais lentas primeiro** — foque no que realmente impacta o usuário
+3. **Mantenha as estatísticas atualizadas** — execute ANALYZE periodicamente
+4. **Evite funções em colunas indexadas** — `WHERE DATE(data) = '2026-01-01'` anula o índice
+5. **Use tipos de dados adequados** — comparar VARCHAR com NUMBER força conversão implícita
+6. **Teste com volume realista** — uma consulta rápida com 100 linhas pode ser lenta com 1 milhão

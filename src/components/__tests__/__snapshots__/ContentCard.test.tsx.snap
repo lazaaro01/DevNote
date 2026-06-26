@@ -1,0 +1,58 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ContentCard > renders content card correctly 1`] = `
+<a
+  class="group block p-5 bg-card border border-slate-700 rounded-xl hover:border-slate-600 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+  href="/backend/test-article"
+>
+  <div
+    class="flex items-center gap-2 mb-2"
+  >
+    <span
+      class="text-xs font-medium px-2.5 py-0.5 rounded-full text-blue-300 bg-blue-950"
+    >
+      Backend
+    </span>
+    <span
+      class="text-xs text-text-secondary"
+    >
+      5
+       min de leitura
+    </span>
+  </div>
+  <h3
+    class="font-semibold text-text group-hover:text-accent transition-colors mb-1.5"
+  >
+    Test Article
+  </h3>
+  <p
+    class="text-sm text-text-secondary leading-relaxed line-clamp-2"
+  >
+    A test article description.
+  </p>
+  <div
+    class="flex flex-wrap gap-1.5 mt-3"
+  >
+    <span
+      class="text-xs text-text-secondary bg-slate-700 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+    >
+      Java
+    </span>
+    <span
+      class="text-xs text-text-secondary bg-slate-700 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+    >
+      Spring
+    </span>
+    <span
+      class="text-xs text-text-secondary bg-slate-700 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+    >
+      API
+    </span>
+  </div>
+  <p
+    class="text-xs text-text-secondary mt-3"
+  >
+    2026-06-25
+  </p>
+</a>
+`;
