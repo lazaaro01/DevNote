@@ -4,6 +4,7 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import MobileMenu from "@/components/MobileMenu";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
+import FirstVisitHint from "@/components/FirstVisitHint";
 import { getCategories } from "@/lib/content";
 
 const geistSans = Geist({
@@ -44,6 +45,7 @@ export default function RootLayout({
         </div>
         <MobileMenu categories={categories} />
         <KeyboardShortcuts />
+        <FirstVisitHint />
         <main className="md:ml-64 min-h-screen">{children}</main>
       </body>
     </html>

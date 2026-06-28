@@ -173,7 +173,7 @@ export default function ArticleToolbar() {
 
       <div className="relative z-50">
         {open && (
-          <div className="absolute bottom-16 right-0 w-[calc(100vw-2rem)] sm:w-80 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-4 animate-scale-in">
+          <div id="toolbar-panel" className="absolute bottom-16 right-0 w-[calc(100vw-2rem)] sm:w-80 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl p-4 animate-scale-in">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold text-text">
                 Personalizar
@@ -276,6 +276,9 @@ export default function ArticleToolbar() {
           onClick={() => setOpen((v) => !v)}
           className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 border border-slate-700 text-xl shadow-lg hover:bg-slate-700 hover:scale-105 transition-all"
           title="Personalizar aparência"
+          aria-label="Personalizar aparência"
+          aria-expanded={open}
+          aria-controls="toolbar-panel"
         >
           🎨
         </button>

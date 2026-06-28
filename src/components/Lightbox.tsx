@@ -63,13 +63,16 @@ export default function Lightbox() {
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Visualização de imagem"
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm cursor-zoom-out animate-lightbox-fade-in"
       onClick={close}
     >
       <button
         onClick={close}
         className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-black/60 text-white/80 hover:text-white hover:bg-black/80 transition-colors text-xl z-10"
-        aria-label="Fechar"
+        aria-label="Fechar visualização"
       >
         ✕
       </button>

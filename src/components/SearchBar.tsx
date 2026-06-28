@@ -23,13 +23,14 @@ export default function SearchBar({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="w-full mb-10">
+    <form onSubmit={handleSubmit} className="w-full mb-10" role="search">
       <div className="relative">
         <svg
           className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -43,6 +44,7 @@ export default function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Pesquisar conteúdos..."
+          aria-label="Pesquisar conteúdos"
           className="w-full pl-12 pr-4 py-3.5 bg-card border border-slate-700 rounded-xl text-text placeholder:text-text-secondary/40 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
         />
       </div>

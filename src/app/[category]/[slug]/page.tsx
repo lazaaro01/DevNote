@@ -9,6 +9,7 @@ import TagLink from "@/components/TagLink";
 import LayoutSwitcher from "@/components/layouts/LayoutSwitcher";
 import TemplateRenderer from "@/components/templates/TemplateRenderer";
 import ArticleToolbar from "@/components/ArticleToolbar";
+import ArticleReactions from "@/components/ArticleReactions";
 import Lightbox from "@/components/Lightbox";
 import BackToTop from "@/components/BackToTop";
 import {
@@ -200,6 +201,8 @@ export default async function ContentPage({
           <TemplateRenderer template={content.template} />
           <MDXContent source={content.content} />
         </div>
+
+        <ArticleReactions slug={slug} />
 
         {seriesItems.length > 1 && (
           <section className="border-t border-slate-700 pt-8 mb-8">
