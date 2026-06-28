@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import MobileMenu from "@/components/MobileMenu";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import FirstVisitHint from "@/components/FirstVisitHint";
+import Footer from "@/components/Footer";
 import { getCategories } from "@/lib/content";
 
 const geistSans = Geist({
@@ -38,6 +39,9 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        <link rel="alternate" type="application/rss+xml" title="DevVault" href="/feed.xml" />
+      </head>
       <body className="bg-bg text-text">
         <div className="aurora-bg" />
         <div className="hidden md:block">
@@ -46,7 +50,10 @@ export default function RootLayout({
         <MobileMenu categories={categories} />
         <KeyboardShortcuts />
         <FirstVisitHint />
-        <main className="md:ml-64 min-h-screen">{children}</main>
+        <main className="md:ml-64 min-h-screen flex flex-col">
+          {children}
+          <Footer />
+        </main>
       </body>
     </html>
   );

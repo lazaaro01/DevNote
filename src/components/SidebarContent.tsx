@@ -33,6 +33,17 @@ export default function SidebarContent({ categories }: { categories: CategoryInf
           Roadmap
         </Link>
         <a
+          href="/feed.xml"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/5 transition-all duration-200"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 110-2 1 1 0 010 2z" />
+          </svg>
+          RSS Feed
+        </a>
+        <a
           href="https://github.com/lazaaro01/DevNote"
           target="_blank"
           rel="noopener noreferrer"
