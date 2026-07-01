@@ -7,7 +7,7 @@ export default function Breadcrumbs({
 }) {
   return (
     <nav className="flex items-center gap-1.5 text-sm text-text-secondary mb-6">
-      <Link href="/" className="hover:text-accent transition-colors">
+      <Link href="/home" className="hover:text-accent transition-colors">
         Home
       </Link>
       {items.map((item, i) => (

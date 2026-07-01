@@ -30,7 +30,7 @@ export default function CategoryCard({ category }: { category: CategoryInfo }) {
       <div
         className={`absolute inset-0 rounded-xl bg-gradient-to-br ${style.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
       />
-      <div className="relative w-9 h-9 flex items-center justify-center rounded-lg bg-slate-700 group-hover:bg-white/10 transition-colors duration-300" style={{ color: style.color }}>
+      <div className="relative w-9 h-9 flex items-center justify-center rounded-lg bg-slate-200 group-hover:bg-slate-300 transition-colors duration-300" style={{ color: style.color }}>
         <Icon size={20} />
       </div>
       <div className="relative">

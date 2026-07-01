@@ -48,7 +48,7 @@ export default function MermaidRenderer({ chart }: { chart: string }) {
   return (
     <div
       ref={ref}
-      className="my-6 rounded-xl border border-slate-700 bg-slate-900 p-4 flex justify-center overflow-x-auto"
+      className="my-6 rounded-xl border border-slate-300 bg-white p-4 flex justify-center overflow-x-auto"
     />
   );
 }

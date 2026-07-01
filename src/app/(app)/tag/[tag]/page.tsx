@@ -43,7 +43,7 @@ export default async function TagPage({
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       <Breadcrumbs items={[{ label: `Tag: ${decoded}` }]} />
 
-      <div className="rounded-2xl bg-gradient-to-r from-slate-600 to-slate-700 p-5 sm:p-8 mb-8">
+      <div className="rounded-2xl bg-gradient-to-r from-slate-500 to-slate-600 p-5 sm:p-8 mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">{decoded}</h1>
         <p className="text-white/80">
           {contents.length} {contents.length === 1 ? "conteúdo" : "conteúdos"} disponíveis

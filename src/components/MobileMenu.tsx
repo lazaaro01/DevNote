@@ -23,7 +23,7 @@ export default function MobileMenu({ categories }: { categories: CategoryInfo[] 
     <div className="md:hidden">
       <button
         onClick={() => setOpen(true)}
-        className="mobile-menu-toggle fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-white/80 shadow-lg hover:bg-slate-700 hover:text-white transition-all"
+        className="mobile-menu-toggle fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-text-secondary shadow-lg hover:bg-slate-100 hover:text-text transition-all"
         aria-label="Abrir menu"
         aria-expanded={open}
         aria-controls="mobile-menu-panel"
@@ -35,7 +35,7 @@ export default function MobileMenu({ categories }: { categories: CategoryInfo[] 
 
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
           onClick={() => setOpen(false)}
           role="presentation"
           aria-hidden="true"
@@ -48,13 +48,13 @@ export default function MobileMenu({ categories }: { categories: CategoryInfo[] 
         role="dialog"
         aria-modal="true"
         aria-label="Navegação principal"
-        className={`fixed top-0 left-0 z-50 h-full w-64 flex flex-col bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 flex flex-col bg-white/80 backdrop-blur-xl border-r border-slate-200 text-text shadow-2xl transition-transform duration-300 ease-in-out ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <button
           onClick={() => setOpen(false)}
-          className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-text hover:bg-black/5 transition-all"
           aria-label="Fechar menu"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

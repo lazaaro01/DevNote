@@ -32,7 +32,7 @@ export default function FirstVisitHint() {
           <span className="text-lg mt-0.5">💡</span>
           <div>
             <p className="text-sm text-text font-medium">
-              Pressione <kbd className="text-xs font-mono bg-slate-700 text-text border border-slate-600 px-1.5 py-0.5 rounded">?</kbd> para ver os atalhos do teclado
+              Pressione <kbd className="text-xs font-mono bg-slate-200 text-text border border-slate-300 px-1.5 py-0.5 rounded">?</kbd> para ver os atalhos do teclado
             </p>
             <p className="text-xs text-text-secondary mt-1">
               Navegue mais rápido pelo sistema.

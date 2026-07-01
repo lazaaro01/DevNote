@@ -47,7 +47,7 @@ export default function ArticleReactions({ slug }: { slug: string }) {
             onClick={() => handleReaction("like")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               reaction === "like"
-                ? "bg-emerald-950 text-emerald-400 border border-emerald-700"
+                ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
                 : "bg-slate-800 text-text-secondary border border-slate-700 hover:bg-slate-700"
             }`}
           >
@@ -60,7 +60,7 @@ export default function ArticleReactions({ slug }: { slug: string }) {
             onClick={() => handleReaction("dislike")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               reaction === "dislike"
-                ? "bg-red-950 text-red-400 border border-red-700"
+                ? "bg-red-100 text-red-700 border border-red-300"
                 : "bg-slate-800 text-text-secondary border border-slate-700 hover:bg-slate-700"
             }`}
           >

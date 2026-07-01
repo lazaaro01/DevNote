@@ -22,19 +22,19 @@ import {
 import { formatDate } from "@/lib/utils";
 
 const catBadge: Record<string, { text: string; bg: string; border: string }> = {
-  backend: { text: "text-blue-300", bg: "bg-blue-950", border: "border-blue-700" },
-  frontend: { text: "text-pink-300", bg: "bg-pink-950", border: "border-pink-700" },
-  database: { text: "text-orange-300", bg: "bg-orange-950", border: "border-orange-700" },
-  devops: { text: "text-cyan-300", bg: "bg-cyan-950", border: "border-cyan-700" },
-  architecture: { text: "text-amber-300", bg: "bg-amber-950", border: "border-amber-700" },
-  career: { text: "text-emerald-300", bg: "bg-emerald-950", border: "border-emerald-700" },
-  cloud: { text: "text-sky-300", bg: "bg-sky-950", border: "border-sky-700" },
-  mensageria: { text: "text-teal-300", bg: "bg-teal-950", border: "border-teal-700" },
-  "system-design": { text: "text-violet-300", bg: "bg-violet-950", border: "border-violet-700" },
-  "design-patterns": { text: "text-fuchsia-300", bg: "bg-fuchsia-950", border: "border-fuchsia-700" },
-  solid: { text: "text-emerald-300", bg: "bg-emerald-950", border: "border-emerald-700" },
-  resiliencia: { text: "text-indigo-300", bg: "bg-indigo-950", border: "border-indigo-700" },
-  okrs: { text: "text-rose-300", bg: "bg-rose-950", border: "border-rose-700" },
+  backend: { text: "text-blue-600", bg: "bg-blue-100", border: "border-blue-300" },
+  frontend: { text: "text-pink-600", bg: "bg-pink-100", border: "border-pink-300" },
+  database: { text: "text-orange-600", bg: "bg-orange-100", border: "border-orange-300" },
+  devops: { text: "text-cyan-600", bg: "bg-cyan-100", border: "border-cyan-300" },
+  architecture: { text: "text-amber-600", bg: "bg-amber-100", border: "border-amber-300" },
+  career: { text: "text-emerald-600", bg: "bg-emerald-100", border: "border-emerald-300" },
+  cloud: { text: "text-sky-600", bg: "bg-sky-100", border: "border-sky-300" },
+  mensageria: { text: "text-teal-600", bg: "bg-teal-100", border: "border-teal-300" },
+  "system-design": { text: "text-violet-600", bg: "bg-violet-100", border: "border-violet-300" },
+  "design-patterns": { text: "text-fuchsia-600", bg: "bg-fuchsia-100", border: "border-fuchsia-300" },
+  solid: { text: "text-emerald-600", bg: "bg-emerald-100", border: "border-emerald-300" },
+  resiliencia: { text: "text-indigo-600", bg: "bg-indigo-100", border: "border-indigo-300" },
+  okrs: { text: "text-rose-600", bg: "bg-rose-100", border: "border-rose-300" },
 };
 
 export async function generateMetadata({
@@ -65,14 +65,14 @@ export async function generateMetadata({
 }
 
 const tagColors = [
-  { text: "text-blue-300", bg: "bg-blue-950" },
-  { text: "text-violet-300", bg: "bg-violet-950" },
-  { text: "text-emerald-300", bg: "bg-emerald-950" },
-  { text: "text-amber-300", bg: "bg-amber-950" },
-  { text: "text-rose-300", bg: "bg-rose-950" },
-  { text: "text-cyan-300", bg: "bg-cyan-950" },
-  { text: "text-pink-300", bg: "bg-pink-950" },
-  { text: "text-indigo-300", bg: "bg-indigo-950" },
+  { text: "text-blue-600", bg: "bg-blue-100" },
+  { text: "text-violet-600", bg: "bg-violet-100" },
+  { text: "text-emerald-600", bg: "bg-emerald-100" },
+  { text: "text-amber-600", bg: "bg-amber-100" },
+  { text: "text-rose-600", bg: "bg-rose-100" },
+  { text: "text-cyan-600", bg: "bg-cyan-100" },
+  { text: "text-pink-600", bg: "bg-pink-100" },
+  { text: "text-indigo-600", bg: "bg-indigo-100" },
 ];
 
 export function generateStaticParams() {
@@ -147,7 +147,7 @@ export default async function ContentPage({
 
         <header className="mb-8">
           {content.draft && (
-            <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-amber-950 text-amber-300 border border-amber-700">
+            <div className="mb-4 inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-300">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>

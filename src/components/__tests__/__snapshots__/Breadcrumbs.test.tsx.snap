@@ -6,7 +6,7 @@ exports[`Breadcrumbs > renders home and items 1`] = `
 >
   <a
     class="hover:text-accent transition-colors"
-    href="/"
+    href="/home"
   >
     Home
   </a>

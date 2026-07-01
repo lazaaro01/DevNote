@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import MobileMenu from "@/components/MobileMenu";
-import KeyboardShortcuts from "@/components/KeyboardShortcuts";
-import FirstVisitHint from "@/components/FirstVisitHint";
-import Footer from "@/components/Footer";
-import { getCategories } from "@/lib/content";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,8 +26,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const categories = getCategories();
-
   return (
     <html
       lang="pt-BR"
@@ -41,19 +33,13 @@ export default function RootLayout({
     >
       <head>
         <link rel="alternate" type="application/rss+xml" title="DevVault" href="/feed.xml" />
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var t=localStorage.getItem("devvault-theme");if(t==="dark")document.documentElement.classList.add("dark")}catch(e){}})()`
+        }} />
       </head>
       <body className="bg-bg text-text">
-        <div className="aurora-bg" />
-        <div className="hidden md:block">
-          <Sidebar />
-        </div>
-        <MobileMenu categories={categories} />
-        <KeyboardShortcuts />
-        <FirstVisitHint />
-        <main className="md:ml-64 min-h-screen flex flex-col">
-          {children}
-          <Footer />
-        </main>
+        <div className="grid-bg" />
+        {children}
       </body>
     </html>
   );

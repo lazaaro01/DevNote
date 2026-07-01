@@ -9,7 +9,7 @@ exports[`ContentCard > renders content card correctly 1`] = `
     class="flex items-center gap-2 mb-2"
   >
     <span
-      class="text-xs font-medium px-2.5 py-0.5 rounded-full text-blue-300 bg-blue-950"
+      class="text-xs font-medium px-2.5 py-0.5 rounded-full text-blue-700 bg-blue-100"
     >
       Backend
     </span>
@@ -34,17 +34,17 @@ exports[`ContentCard > renders content card correctly 1`] = `
     class="flex flex-wrap gap-1.5 mt-3"
   >
     <span
-      class="text-xs text-text-secondary bg-slate-700 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+      class="text-xs text-text-secondary bg-slate-200 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
     >
       Java
     </span>
     <span
-      class="text-xs text-text-secondary bg-slate-700 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+      class="text-xs text-text-secondary bg-slate-200 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
     >
       Spring
     </span>
     <span
-      class="text-xs text-text-secondary bg-slate-700 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
+      class="text-xs text-text-secondary bg-slate-200 hover:bg-accent-hover hover:text-accent px-2 py-0.5 rounded"
     >
       API
     </span>

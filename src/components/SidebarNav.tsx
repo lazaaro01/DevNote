@@ -38,8 +38,8 @@ export default function SidebarNav({
               href={`/${cat.slug}`}
               className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive
-                  ? "text-white font-medium shadow-sm"
-                  : "text-white/70 hover:text-white hover:bg-white/5"
+                  ? "text-accent font-medium shadow-sm"
+                  : "text-text-secondary hover:text-text hover:bg-black/5"
               }`}
               style={isActive ? { background: colors.bg } : {}}
             >
@@ -54,7 +54,7 @@ export default function SidebarNav({
                 />
                 <span className="truncate">{cat.name}</span>
               </div>
-              <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">
+              <span className="text-xs text-text-secondary bg-black/5 px-2 py-0.5 rounded-full">
                 {cat.count}
               </span>
             </Link>

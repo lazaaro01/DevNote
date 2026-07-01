@@ -44,7 +44,7 @@ export default async function CategoryPage({
 
       <div className={`rounded-2xl bg-gradient-to-r ${colors.gradient} p-5 sm:p-8 mb-8`}>
         <h1 className="text-3xl font-bold text-white mb-2">{catInfo.name}</h1>
-        <p className="text-white/80">
+        <p className="text-white/90">
           {catInfo.count} {catInfo.count === 1 ? "conteúdo" : "conteúdos"} disponíveis
         </p>
       </div>
